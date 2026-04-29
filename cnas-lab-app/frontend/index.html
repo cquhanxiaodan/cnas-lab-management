@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CNAS实验室文件管理系统</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #app { height: 100%; font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; }
+    :root {
+      --primary: #1a237e;
+      --primary-light: #3949ab;
+      --primary-dark: #0d1642;
+      --primary-bg: #e8eaf6;
+      --accent: #ff6f00;
+      --success: #2e7d32;
+      --warning: #f57f17;
+      --danger: #c62828;
+    }
+    .login-container {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+    }
+    .login-card {
+      width: 420px;
+      padding: 40px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .login-card h2 { text-align: center; color: var(--primary); margin-bottom: 8px; font-size: 24px; }
+    .login-card .subtitle { text-align: center; color: #666; margin-bottom: 32px; font-size: 14px; }
+    .login-card .el-button { width: 100%; height: 44px; font-size: 16px; }
+    .app-container { height: 100vh; display: flex; flex-direction: column; }
+    .app-header {
+      height: 56px;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .app-header .logo { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+    .app-header .user-info { display: flex; align-items: center; gap: 12px; }
+    .app-header .user-info span { font-size: 14px; }
+    .app-main { display: flex; flex: 1; overflow: hidden; }
+    .app-aside {
+      width: 220px;
+      background: var(--primary-dark);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .app-aside .el-menu {
+      border-right: none;
+      background: transparent;
+    }
+    .app-aside .el-menu-item, .app-aside .el-sub-menu__title {
+      color: rgba(255,255,255,0.75);
+    }
+    .app-aside .el-menu-item:hover, .app-aside .el-sub-menu__title:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+    .app-aside .el-menu-item.is-active {
+      background: var(--primary-light) !important;
+      color: #fff;
+    }
+    .app-aside .el-sub-menu.is-active > .el-sub-menu__title {
+      color: #fff;
+    }
+    .app-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #f5f7fa;
+    }
+    .page-header {
+      margin-bottom: 20px;
+    }
+    .page-header h3 {
+      font-size: 20px;
+      color: var(--primary);
+      border-left: 4px solid var(--primary);
+      padding-left: 12px;
+    }
+    .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+    .stat-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .stat-card .icon-wrap {
+      width: 56px; height: 56px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; color: #fff;
+    }
+    .stat-card .info .label { font-size: 13px; color: #999; margin-bottom: 4px; }
+    .stat-card .info .value { font-size: 28px; font-weight: 700; color: #333; }
+    .chart-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+    .chart-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .chart-card h4 { font-size: 15px; color: #333; margin-bottom: 12px; padding-left: 8px; border-left: 3px solid var(--primary); }
+    .chart-card .chart-container { width: 100%; height: 280px; }
+    .alert-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .alert-card h4 { font-size: 15px; color: #333; margin-bottom: 12px; padding-left: 8px; border-left: 3px solid var(--danger); }
+    .crud-container { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .crud-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .crud-toolbar .left { display: flex; gap: 8px; }
+    .el-table { font-size: 13px; }
+    .el-table th { background: var(--primary-bg) !important; color: var(--primary) !important; font-weight: 600; }
+    .import-container { background: #fff; border-radius: 8px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); max-width: 700px; }
+    .import-container h4 { margin-bottom: 16px; color: var(--primary); }
+    .import-container .tips { margin-top: 16px; color: #666; font-size: 13px; line-height: 1.8; }
+    .status-tag { font-size: 12px; }
+    @media (max-width: 1200px) {
+      .stat-cards { grid-template-columns: repeat(2, 1fr); }
+      .chart-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div v-if="currentRoute === 'login'" class="login-container">
+    <div class="login-card">
+      <h2>CNAS实验室文件管理系统</h2>
+      <p class="subtitle">Laboratory Document Management System</p>
+      <el-form :model="loginForm" :rules="loginRules" ref="loginFormRef" @keyup.enter="handleLogin">
+        <el-form-item prop="username">
+          <el-input v-model="loginForm.username" placeholder="用户名" prefix-icon="User" size="large" />
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input v-model="loginForm.password" type="password" placeholder="密码" prefix-icon="Lock" size="large" show-password />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleLogin" :loading="loginLoading" style="background:var(--primary);border-color:var(--primary)">登 录</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+  </div>
+
+  <div v-else class="app-container">
+    <header class="app-header">
+      <div class="logo">CNAS 实验室文件管理系统</div>
+      <div class="user-info">
+        <span>{{ currentUser?.full_name || currentUser?.username || '' }}</span>
+        <el-dropdown @command="handleUserCommand">
+          <el-avatar :size="32" style="cursor:pointer;background:var(--primary-light)">{{ (currentUser?.full_name || currentUser?.username || 'U')[0] }}</el-avatar>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="profile">个人信息</el-dropdown-item>
+              <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+    </header>
+    <div class="app-main">
+      <aside class="app-aside">
+        <el-menu :default-active="currentRoute" @select="navigateTo" :unique-opened="true" text-color="rgba(255,255,255,0.75)" active-text-color="#fff">
+          <el-menu-item index="dashboard"><el-icon><DataAnalysis /></el-icon><span>仪表盘</span></el-menu-item>
+          <el-menu-item index="personnel"><el-icon><User /></el-icon><span>人员管理</span></el-menu-item>
+          <el-menu-item index="equipment"><el-icon><SetUp /></el-icon><span>设备管理</span></el-menu-item>
+          <el-sub-menu index="quality">
+            <template #title><el-icon><Medal /></el-icon><span>质量活动</span></template>
+            <el-menu-item index="quality-control">质量控制</el-menu-item>
+            <el-menu-item index="internal-audit">内部审核</el-menu-item>
+            <el-menu-item index="management-review">管理评审</el-menu-item>
+          </el-sub-menu>
+          <el-menu-item index="detection"><el-icon><DocumentChecked /></el-icon><span>检测业务</span></el-menu-item>
+          <el-menu-item index="documents"><el-icon><Folder /></el-icon><span>文件管理</span></el-menu-item>
+          <el-menu-item index="ncrs"><el-icon><Warning /></el-icon><span>不符合项</span></el-menu-item>
+          <el-menu-item index="import"><el-icon><Upload /></el-icon><span>数据导入</span></el-menu-item>
+        </el-menu>
+      </aside>
+      <main class="app-content">
+
+        <!-- Dashboard -->
+        <div v-if="currentRoute === 'dashboard'">
+          <div class="page-header"><h3>仪表盘</h3></div>
+          <div class="stat-cards">
+            <div class="stat-card" v-for="s in dashStats" :key="s.label">
+              <div class="icon-wrap" :style="{background:s.color}">{{ s.icon }}</div>
+              <div class="info">
+                <div class="label">{{ s.label }}</div>
+                <div class="value">{{ s.value }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-row">
+            <div class="chart-card">
+              <h4>设备状态分布</h4>
+              <div class="chart-container" ref="chartEquipStatus"></div>
+            </div>
+            <div class="chart-card">
+              <h4>人员授权状态</h4>
+              <div class="chart-container" ref="chartAuthStatus"></div>
+            </div>
+          </div>
+          <div class="chart-row">
+            <div class="chart-card">
+              <h4>不符合项来源分布</h4>
+              <div class="chart-container" ref="chartNcrSource"></div>
+            </div>
+            <div class="chart-card">
+              <h4>文件层级分布</h4>
+              <div class="chart-container" ref="chartDocLevel"></div>
+            </div>
+          </div>
+          <div class="alert-card">
+            <h4>预警列表</h4>
+            <el-table :data="dashAlerts" stripe size="small">
+              <el-table-column prop="type" label="类型" width="120">
+                <template #default="{row}">
+                  <el-tag :type="alertTypeMap[row.type] || 'warning'" size="small">{{ row.type }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="title" label="预警内容" />
+              <el-table-column prop="deadline" label="截止日期" width="120" />
+              <el-table-column prop="days_left" label="剩余天数" width="100">
+                <template #default="{row}">
+                  <span :style="{color: row.days_left <= 7 ? '#c62828' : row.days_left <= 30 ? '#f57f17' : '#2e7d32'}">{{ row.days_left }} 天</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="80">
+                <template #default="{row}">
+                  <el-button type="primary" link size="small" @click="navigateTo(row.route || 'dashboard')">查看</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </div>
+
+        <!-- Personnel -->
+        <div v-if="currentRoute === 'personnel'">
+          <div class="page-header"><h3>人员管理</h3></div>
+          <div class="crud-container">
+            <div class="crud-toolbar">
+              <div class="left">
+                <el-button type="primary" @click="openPersonnelDialog()" style="background:var(--primary);border-color:var(--primary)"><el-icon><Plus /></el-icon> 新增人员</el-button>
+              </div>
+              <el-input v-model="personnelSearch" placeholder="搜索姓名/岗位" style="width:240px" clearable @clear="loadPersonnel" @keyup.enter="loadPersonnel">
+                <template #prefix><el-icon><Search /></el-icon></template>
+              </el-input>
+            </div>
+            <el-table :data="personnelList" stripe v-loading="personnelLoading">
+              <el-table-column prop="name" label="姓名" width="100" />
+              <el-table-column prop="employee_id" label="工号" width="100" />
+              <el-table-column prop="position" label="岗位" width="120" />
+              <el-table-column prop="department" label="部门" width="120" />
+              <el-table-column prop="qualification" label="资质" />
+              <el-table-column prop="authorization_status" label="授权状态" width="100">
+                <template #default="{row}">
+                  <el-tag :type="row.authorization_status==='已授权'?'success':row.authorization_status==='待授权'?'warning':'danger'" size="small">{{ row.authorization_status||'未授权' }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="entry_date" label="入职日期" width="120" />
+              <el-table-column label="操作" width="150" fixed="right">
+                <template #default="{row}">
+                  <el-button type="primary" link size="small" @click="openPersonnelDialog(row)">编辑</el-button>
+                  <el-button type="danger" link size="small" @click="deletePersonnel(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-pagination v-if="personnelTotal>0" style="margin-top:16px;justify-content:flex-end" layout="total, prev, pager, next" :total="personnelTotal" :page-size="20" @current-change="loadPersonnel" />
+          </div>
+          <el-dialog v-model="personnelDialogVisible" :title="personnelForm.id?'编辑人员':'新增人员'" width="600px" destroy-on-close>
+            <el-form :model="personnelForm" label-width="80px">
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="姓名"><el-input v-model="personnelForm.name" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="工号"><el-input v-model="personnelForm.employee_id" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="岗位"><el-input v-model="personnelForm.position" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="部门"><el-input v-model="personnelForm.department" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="资质"><el-input v-model="personnelForm.qualification" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="授权状态">
+                  <el-select v-model="personnelForm.authorization_status" style="width:100%">
+                    <el-option label="已授权" value="已授权" /><el-option label="待授权" value="待授权" /><el-option label="未授权" value="未授权" />
+                  </el-select>
+                </el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="入职日期"><el-date-picker v-model="personnelForm.entry_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="联系电话"><el-input v-model="personnelForm.phone" /></el-form-item></el-col>
+              </el-row>
+              <el-form-item label="备注"><el-input v-model="personnelForm.remark" type="textarea" :rows="2" /></el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="personnelDialogVisible=false">取消</el-button>
+              <el-button type="primary" @click="savePersonnel" :loading="personnelSaving" style="background:var(--primary);border-color:var(--primary)">保存</el-button>
+            </template>
+          </el-dialog>
+        </div>
+
+        <!-- Equipment -->
+        <div v-if="currentRoute === 'equipment'">
+          <div class="page-header"><h3>设备管理</h3></div>
+          <div class="crud-container">
+            <div class="crud-toolbar">
+              <div class="left">
+                <el-button type="primary" @click="openEquipDialog()" style="background:var(--primary);border-color:var(--primary)"><el-icon><Plus /></el-icon> 新增设备</el-button>
+              </div>
+              <el-input v-model="equipSearch" placeholder="搜索设备名称/编号" style="width:240px" clearable @clear="loadEquipment" @keyup.enter="loadEquipment">
+                <template #prefix><el-icon><Search /></el-icon></template>
+              </el-input>
+            </div>
+            <el-table :data="equipList" stripe v-loading="equipLoading">
+              <el-table-column prop="name" label="设备名称" width="140" />
+              <el-table-column prop="asset_id" label="资产编号" width="120" />
+              <el-table-column prop="model" label="型号规格" width="140" />
+              <el-table-column prop="manufacturer" label="制造商" width="120" />
+              <el-table-column prop="location" label="存放位置" width="120" />
+              <el-table-column prop="status" label="状态" width="90">
+                <template #default="{row}">
+                  <el-tag :type="row.status==='正常'?'success':row.status==='维修中'?'warning':'danger'" size="small">{{ row.status }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="last_calibration_date" label="上次校准" width="110" />
+              <el-table-column prop="next_calibration_date" label="下次校准" width="110" />
+              <el-table-column label="操作" width="150" fixed="right">
+                <template #default="{row}">
+                  <el-button type="primary" link size="small" @click="openEquipDialog(row)">编辑</el-button>
+                  <el-button type="danger" link size="small" @click="deleteEquipment(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-pagination v-if="equipTotal>0" style="margin-top:16px;justify-content:flex-end" layout="total, prev, pager, next" :total="equipTotal" :page-size="20" @current-change="loadEquipment" />
+          </div>
+          <el-dialog v-model="equipDialogVisible" :title="equipForm.id?'编辑设备':'新增设备'" width="650px" destroy-on-close>
+            <el-form :model="equipForm" label-width="90px">
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="设备名称"><el-input v-model="equipForm.name" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="资产编号"><el-input v-model="equipForm.asset_id" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="型号规格"><el-input v-model="equipForm.model" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="制造商"><el-input v-model="equipForm.manufacturer" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="存放位置"><el-input v-model="equipForm.location" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="状态">
+                  <el-select v-model="equipForm.status" style="width:100%">
+                    <el-option label="正常" value="正常" /><el-option label="维修中" value="维修中" /><el-option label="停用" value="停用" /><el-option label="报废" value="报废" />
+                  </el-select>
+                </el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="上次校准"><el-date-picker v-model="equipForm.last_calibration_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="下次校准"><el-date-picker v-model="equipForm.next_calibration_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+              </el-row>
+              <el-form-item label="备注"><el-input v-model="equipForm.remark" type="textarea" :rows="2" /></el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="equipDialogVisible=false">取消</el-button>
+              <el-button type="primary" @click="saveEquipment" :loading="equipSaving" style="background:var(--primary);border-color:var(--primary)">保存</el-button>
+            </template>
+          </el-dialog>
+        </div>
+
+        <!-- Quality Control -->
+        <div v-if="currentRoute === 'quality-control'">
+          <div class="page-header"><h3>质量控制</h3></div>
+          <div class="crud-container">
+            <div class="crud-toolbar">
+              <div class="left">
+                <el-button type="primary" @click="openQcDialog()" style="background:var(--primary);border-color:var(--primary)"><el-icon><Plus /></el-icon> 新增记录</el-button>
+              </div>
+            </div>
+            <el-table :data="qcList" stripe v-loading="qcLoading">
+              <el-table-column prop="item" label="质控项目" width="160" />
+              <el-table-column prop="method" label="方法" width="140" />
+              <el-table-column prop="frequency" label="频次" width="100" />
+              <el-table-column prop="result" label="结果" width="100">
+                <template #default="{row}">
+                  <el-tag :type="row.result==='合格'?'success':'danger'" size="small">{{ row.result }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="executor" label="执行人" width="100" />
+              <el-table-column prop="execute_date" label="执行日期" width="120" />
+              <el-table-column prop="remark" label="备注" />
+              <el-table-column label="操作" width="100" fixed="right">
+                <template #default="{row}">
+                  <el-button type="danger" link size="small" @click="deleteQc(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <el-dialog v-model="qcDialogVisible" title="新增质控记录" width="550px" destroy-on-close>
+            <el-form :model="qcForm" label-width="80px">
+              <el-form-item label="质控项目"><el-input v-model="qcForm.item" /></el-form-item>
+              <el-form-item label="方法"><el-input v-model="qcForm.method" /></el-form-item>
+              <el-form-item label="频次"><el-input v-model="qcForm.frequency" /></el-form-item>
+              <el-form-item label="结果">
+                <el-select v-model="qcForm.result" style="width:100%">
+                  <el-option label="合格" value="合格" /><el-option label="不合格" value="不合格" />
+                </el-select>
+              </el-form-item>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="执行人"><el-input v-model="qcForm.executor" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="执行日期"><el-date-picker v-model="qcForm.execute_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+              </el-row>
+              <el-form-item label="备注"><el-input v-model="qcForm.remark" type="textarea" :rows="2" /></el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="qcDialogVisible=false">取消</el-button>
+              <el-button type="primary" @click="saveQc" :loading="qcSaving" style="background:var(--primary);border-color:var(--primary)">保存</el-button>
+            </template>
+          </el-dialog>
+        </div>
+
+        <!-- Internal Audit -->
+        <div v-if="currentRoute === 'internal-audit'">
+          <div class="page-header"><h3>内部审核</h3></div>
+          <div class="crud-container">
+            <div class="crud-toolbar">
+              <div class="left">
+                <el-button type="primary" @click="openIaDialog()" style="background:var(--primary);border-color:var(--primary)"><el-icon><Plus /></el-icon> 新增记录</el-button>
+              </div>
+            </div>
+            <el-table :data="iaList" stripe v-loading="iaLoading">
+              <el-table-column prop="audit_year" label="审核年度" width="100" />
+              <el-table-column prop="audit_scope" label="审核范围" width="160" />
+              <el-table-column prop="lead_auditor" label="主审核员" width="100" />
+              <el-table-column prop="audit_date" label="审核日期" width="120" />
+              <el-table-column prop="findings_count" label="发现问题" width="100" />
+              <el-table-column prop="status" label="状态" width="100">
+                <template #default="{row}">
+                  <el-tag :type="row.status==='已完成'?'success':row.status==='进行中'?'warning':'info'" size="small">{{ row.status }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="remark" label="备注" />
+              <el-table-column label="操作" width="100" fixed="right">
+                <template #default="{row}">
+                  <el-button type="danger" link size="small" @click="deleteIa(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <el-dialog v-model="iaDialogVisible" title="新增内审记录" width="550px" destroy-on-close>
+            <el-form :model="iaForm" label-width="80px">
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="审核年度"><el-input v-model="iaForm.audit_year" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="主审核员"><el-input v-model="iaForm.lead_auditor" /></el-form-item></el-col>
+              </el-row>
+              <el-form-item label="审核范围"><el-input v-model="iaForm.audit_scope" /></el-form-item>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="审核日期"><el-date-picker v-model="iaForm.audit_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="状态">
+                  <el-select v-model="iaForm.status" style="width:100%">
+                    <el-option label="计划中" value="计划中" /><el-option label="进行中" value="进行中" /><el-option label="已完成" value="已完成" />
+                  </el-select>
+                </el-form-item></el-col>
+              </el-row>
+              <el-form-item label="备注"><el-input v-model="iaForm.remark" type="textarea" :rows="2" /></el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="iaDialogVisible=false">取消</el-button>
+              <el-button type="primary" @click="saveIa" :loading="iaSaving" style="background:var(--primary);border-color:var(--primary)">保存</el-button>
+            </template>
+          </el-dialog>
+        </div>
+
+        <!-- Management Review -->
+        <div v-if="currentRoute === 'management-review'">
+          <div class="page-header"><h3>管理评审</h3></div>
+          <div class="crud-container">
+            <div class="crud-toolbar">
+              <div class="left">
+                <el-button type="primary" @click="openMrDialog()" style="background:var(--primary);border-color:var(--primary)"><el-icon><Plus /></el-icon> 新增记录</el-button>
+              </div>
+            </div>
+            <el-table :data="mrList" stripe v-loading="mrLoading">
+              <el-table-column prop="review_year" label="评审年度" width="100" />
+              <el-table-column prop="review_topic" label="评审主题" width="180" />
+              <el-table-column prop="chairman" label="主持人" width="100" />
+              <el-table-column prop="review_date" label="评审日期" width="120" />
+              <el-table-column prop="status" label="状态" width="100">
+                <template #default="{row}">
+                  <el-tag :type="row.status==='已完成'?'success':row.status==='进行中'?'warning':'info'" size="small">{{ row.status }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="conclusion" label="评审结论" />
+              <el-table-column label="操作" width="100" fixed="right">
+                <template #default="{row}">
+                  <el-button type="danger" link size="small" @click="deleteMr(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <el-dialog v-model="mrDialogVisible" title="新增管评记录" width="550px" destroy-on-close>
+            <el-form :model="mrForm" label-width="80px">
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="评审年度"><el-input v-model="mrForm.review_year" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="主持人"><el-input v-model="mrForm.chairman" /></el-form-item></el-col>
+              </el-row>
+              <el-form-item label="评审主题"><el-input v-model="mrForm.review_topic" /></el-form-item>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="评审日期"><el-date-picker v-model="mrForm.review_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="状态">
+                  <el-select v-model="mrForm.status" style="width:100%">
+                    <el-option label="计划中" value="计划中" /><el-option label="进行中" value="进行中" /><el-option label="已完成" value="已完成" />
+                  </el-select>
+                </el-form-item></el-col>
+              </el-row>
+              <el-form-item label="评审结论"><el-input v-model="mrForm.conclusion" type="textarea" :rows="2" /></el-form-item>
+              <el-form-item label="备注"><el-input v-model="mrForm.remark" type="textarea" :rows="2" /></el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="mrDialogVisible=false">取消</el-button>
+              <el-button type="primary" @click="saveMr" :loading="mrSaving" style="background:var(--primary);border-color:var(--primary)">保存</el-button>
+            </template>
+          </el-dialog>
+        </div>
+
+        <!-- Detection Projects -->
+        <div v-if="currentRoute === 'detection'">
+          <div class="page-header"><h3>检测业务</h3></div>
+          <div class="crud-container">
+            <div class="crud-toolbar">
+              <div class="left">
+                <el-button type="primary" @click="openDpDialog()" style="background:var(--primary);border-color:var(--primary)"><el-icon><Plus /></el-icon> 新增项目</el-button>
+              </div>
+              <el-input v-model="dpSearch" placeholder="搜索项目名称/标准" style="width:240px" clearable @clear="loadDetection" @keyup.enter="loadDetection">
+                <template #prefix><el-icon><Search /></el-icon></template>
+              </el-input>
+            </div>
+            <el-table :data="dpList" stripe v-loading="dpLoading">
+              <el-table-column prop="project_name" label="项目名称" width="180" />
+              <el-table-column prop="standard" label="检测标准" width="160" />
+              <el-table-column prop="method" label="检测方法" width="140" />
+              <el-table-column prop="personnel_name" label="负责人" width="100" />
+              <el-table-column prop="equipment_name" label="使用设备" width="120" />
+              <el-table-column prop="status" label="状态" width="90">
+                <template #default="{row}">
+                  <el-tag :type="row.status==='进行中'?'primary':row.status==='已完成'?'success':'info'" size="small">{{ row.status }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="start_date" label="开始日期" width="110" />
+              <el-table-column prop="end_date" label="结束日期" width="110" />
+              <el-table-column label="操作" width="100" fixed="right">
+                <template #default="{row}">
+                  <el-button type="danger" link size="small" @click="deleteDp(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-pagination v-if="dpTotal>0" style="margin-top:16px;justify-content:flex-end" layout="total, prev, pager, next" :total="dpTotal" :page-size="20" @current-change="loadDetection" />
+          </div>
+          <el-dialog v-model="dpDialogVisible" title="新增检测项目" width="600px" destroy-on-close>
+            <el-form :model="dpForm" label-width="80px">
+              <el-form-item label="项目名称"><el-input v-model="dpForm.project_name" /></el-form-item>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="检测标准"><el-input v-model="dpForm.standard" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="检测方法"><el-input v-model="dpForm.method" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="负责人"><el-input v-model="dpForm.personnel_name" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="使用设备"><el-input v-model="dpForm.equipment_name" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="开始日期"><el-date-picker v-model="dpForm.start_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="结束日期"><el-date-picker v-model="dpForm.end_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+              </el-row>
+              <el-form-item label="状态">
+                <el-select v-model="dpForm.status" style="width:100%">
+                  <el-option label="未开始" value="未开始" /><el-option label="进行中" value="进行中" /><el-option label="已完成" value="已完成" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="备注"><el-input v-model="dpForm.remark" type="textarea" :rows="2" /></el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="dpDialogVisible=false">取消</el-button>
+              <el-button type="primary" @click="saveDp" :loading="dpSaving" style="background:var(--primary);border-color:var(--primary)">保存</el-button>
+            </template>
+          </el-dialog>
+        </div>
+
+        <!-- Documents -->
+        <div v-if="currentRoute === 'documents'">
+          <div class="page-header"><h3>文件管理</h3></div>
+          <div class="crud-container">
+            <div class="crud-toolbar">
+              <div class="left">
+                <el-button type="primary" @click="openDocDialog()" style="background:var(--primary);border-color:var(--primary)"><el-icon><Plus /></el-icon> 新增文件</el-button>
+              </div>
+              <el-input v-model="docSearch" placeholder="搜索文件名称/编号" style="width:240px" clearable @clear="loadDocuments" @keyup.enter="loadDocuments">
+                <template #prefix><el-icon><Search /></el-icon></template>
+              </el-input>
+            </div>
+            <el-table :data="docList" stripe v-loading="docLoading">
+              <el-table-column prop="doc_number" label="文件编号" width="140" />
+              <el-table-column prop="title" label="文件名称" width="200" />
+              <el-table-column prop="level" label="层级" width="80">
+                <template #default="{row}">
+                  <el-tag :type="row.level==='一级'?'danger':row.level==='二级'?'warning':'success'" size="small">{{ row.level }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="version" label="版本" width="70" />
+              <el-table-column prop="category" label="类别" width="100" />
+              <el-table-column prop="status" label="状态" width="80">
+                <template #default="{row}">
+                  <el-tag :type="row.status==='生效'?'success':'warning'" size="small">{{ row.status }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="author" label="编制人" width="80" />
+              <el-table-column prop="approve_date" label="批准日期" width="110" />
+              <el-table-column prop="review_date" label="评审日期" width="110" />
+              <el-table-column label="操作" width="100" fixed="right">
+                <template #default="{row}">
+                  <el-button type="danger" link size="small" @click="deleteDoc(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-pagination v-if="docTotal>0" style="margin-top:16px;justify-content:flex-end" layout="total, prev, pager, next" :total="docTotal" :page-size="20" @current-change="loadDocuments" />
+          </div>
+          <el-dialog v-model="docDialogVisible" title="新增文件" width="650px" destroy-on-close>
+            <el-form :model="docForm" label-width="80px">
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="文件编号"><el-input v-model="docForm.doc_number" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="文件名称"><el-input v-model="docForm.title" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="8"><el-form-item label="层级">
+                  <el-select v-model="docForm.level" style="width:100%">
+                    <el-option label="一级" value="一级" /><el-option label="二级" value="二级" /><el-option label="三级" value="三级" /><el-option label="四级" value="四级" />
+                  </el-select>
+                </el-form-item></el-col>
+                <el-col :span="8"><el-form-item label="版本"><el-input v-model="docForm.version" /></el-form-item></el-col>
+                <el-col :span="8"><el-form-item label="类别"><el-input v-model="docForm.category" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="8"><el-form-item label="状态">
+                  <el-select v-model="docForm.status" style="width:100%">
+                    <el-option label="生效" value="生效" /><el-option label="废止" value="废止" /><el-option label="草稿" value="草稿" />
+                  </el-select>
+                </el-form-item></el-col>
+                <el-col :span="8"><el-form-item label="编制人"><el-input v-model="docForm.author" /></el-form-item></el-col>
+                <el-col :span="8"><el-form-item label="批准日期"><el-date-picker v-model="docForm.approve_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+              </el-row>
+              <el-form-item label="评审日期"><el-date-picker v-model="docForm.review_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item>
+              <el-form-item label="备注"><el-input v-model="docForm.remark" type="textarea" :rows="2" /></el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="docDialogVisible=false">取消</el-button>
+              <el-button type="primary" @click="saveDoc" :loading="docSaving" style="background:var(--primary);border-color:var(--primary)">保存</el-button>
+            </template>
+          </el-dialog>
+        </div>
+
+        <!-- NCRs -->
+        <div v-if="currentRoute === 'ncrs'">
+          <div class="page-header"><h3>不符合项管理</h3></div>
+          <div class="crud-container">
+            <div class="crud-toolbar">
+              <div class="left">
+                <el-button type="primary" @click="openNcrDialog()" style="background:var(--primary);border-color:var(--primary)"><el-icon><Plus /></el-icon> 新增NCR</el-button>
+              </div>
+            </div>
+            <el-table :data="ncrList" stripe v-loading="ncrLoading">
+              <el-table-column prop="ncr_number" label="NCR编号" width="120" />
+              <el-table-column prop="source" label="来源" width="100" />
+              <el-table-column prop="description" label="不符合描述" min-width="200" show-overflow-tooltip />
+              <el-table-column prop="severity" label="严重程度" width="90">
+                <template #default="{row}">
+                  <el-tag :type="row.severity==='严重'?'danger':row.severity==='一般'?'warning':'info'" size="small">{{ row.severity }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="responsible" label="责任人" width="80" />
+              <el-table-column prop="status" label="状态" width="90">
+                <template #default="{row}">
+                  <el-tag :type="ncrStatusType(row.status)" size="small">{{ row.status }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="found_date" label="发现日期" width="110" />
+              <el-table-column prop="due_date" label="整改截止" width="110" />
+              <el-table-column label="操作" width="200" fixed="right">
+                <template #default="{row}">
+                  <el-button type="primary" link size="small" @click="openNcrDialog(row)">编辑</el-button>
+                  <el-button v-if="row.status==='待整改'" type="warning" link size="small" @click="ncrAction(row,'rectifying')">整改</el-button>
+                  <el-button v-if="row.status==='整改中'" type="success" link size="small" @click="ncrAction(row,'verifying')">验证</el-button>
+                  <el-button v-if="row.status==='待验证'" type="success" link size="small" @click="ncrAction(row,'close')">闭环</el-button>
+                  <el-button type="danger" link size="small" @click="deleteNcr(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <el-dialog v-model="ncrDialogVisible" :title="ncrForm.id?'编辑NCR':'新增NCR'" width="650px" destroy-on-close>
+            <el-form :model="ncrForm" label-width="90px">
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="NCR编号"><el-input v-model="ncrForm.ncr_number" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="来源">
+                  <el-select v-model="ncrForm.source" style="width:100%">
+                    <el-option label="内部审核" value="内部审核" /><el-option label="外部审核" value="外部审核" /><el-option label="客户投诉" value="客户投诉" /><el-option label="日常监督" value="日常监督" /><el-option label="质控活动" value="质控活动" /><el-option label="其他" value="其他" />
+                  </el-select>
+                </el-form-item></el-col>
+              </el-row>
+              <el-form-item label="不符合描述"><el-input v-model="ncrForm.description" type="textarea" :rows="3" /></el-form-item>
+              <el-row :gutter="16">
+                <el-col :span="8"><el-form-item label="严重程度">
+                  <el-select v-model="ncrForm.severity" style="width:100%">
+                    <el-option label="严重" value="严重" /><el-option label="一般" value="一般" /><el-option label="轻微" value="轻微" />
+                  </el-select>
+                </el-form-item></el-col>
+                <el-col :span="8"><el-form-item label="责任人"><el-input v-model="ncrForm.responsible" /></el-form-item></el-col>
+                <el-col :span="8"><el-form-item label="发现日期"><el-date-picker v-model="ncrForm.found_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="整改截止"><el-date-picker v-model="ncrForm.due_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="整改措施"><el-input v-model="ncrForm.rectification" /></el-form-item></el-col>
+              </el-row>
+              <el-form-item label="备注"><el-input v-model="ncrForm.remark" type="textarea" :rows="2" /></el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="ncrDialogVisible=false">取消</el-button>
+              <el-button type="primary" @click="saveNcr" :loading="ncrSaving" style="background:var(--primary);border-color:var(--primary)">保存</el-button>
+            </template>
+          </el-dialog>
+          <el-dialog v-model="ncrActionDialogVisible" :title="ncrActionTitle" width="500px" destroy-on-close>
+            <el-form :model="ncrActionForm" label-width="90px">
+              <el-form-item v-if="ncrActionType==='rectifying'" label="整改措施"><el-input v-model="ncrActionForm.rectification" type="textarea" :rows="3" /></el-form-item>
+              <el-form-item v-if="ncrActionType==='rectifying'" label="整改日期"><el-date-picker v-model="ncrActionForm.rectification_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item>
+              <el-form-item v-if="ncrActionType==='verifying'" label="验证结果">
+                <el-select v-model="ncrActionForm.verification_result" style="width:100%">
+                  <el-option label="验证通过" value="通过" /><el-option label="验证不通过" value="不通过" />
+                </el-select>
+              </el-form-item>
+              <el-form-item v-if="ncrActionType==='verifying'" label="验证意见"><el-input v-model="ncrActionForm.verification_comment" type="textarea" :rows="3" /></el-form-item>
+              <el-form-item v-if="ncrActionType==='close'" label="闭环说明"><el-input v-model="ncrActionForm.close_comment" type="textarea" :rows="3" /></el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="ncrActionDialogVisible=false">取消</el-button>
+              <el-button type="primary" @click="submitNcrAction" :loading="ncrActionSaving" style="background:var(--primary);border-color:var(--primary)">确认</el-button>
+            </template>
+          </el-dialog>
+        </div>
+
+        <!-- Data Import -->
+        <div v-if="currentRoute === 'import'">
+          <div class="page-header"><h3>数据导入</h3></div>
+          <div class="import-container">
+            <h4>CSV 文件导入</h4>
+            <el-form label-width="100px">
+              <el-form-item label="目标表">
+                <el-select v-model="importTable" placeholder="选择导入表" style="width:100%">
+                  <el-option label="人员表" value="personnel" />
+                  <el-option label="设备表" value="equipment" />
+                  <el-option label="授权表" value="authorizations" />
+                  <el-option label="校准表" value="calibrations" />
+                  <el-option label="核查表" value="checks" />
+                  <el-option label="质控表" value="quality_controls" />
+                  <el-option label="内审表" value="internal_audits" />
+                  <el-option label="管评表" value="management_reviews" />
+                  <el-option label="检测项目表" value="detection_projects" />
+                  <el-option label="文件表" value="documents" />
+                  <el-option label="不符合项表" value="ncrs" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="CSV文件">
+                <el-upload
+                  ref="importUploadRef"
+                  :auto-upload="false"
+                  :limit="1"
+                  accept=".csv"
+                  :on-change="handleImportFile"
+                  :on-remove="()=>importFile=null"
+                  drag
+                >
+                  <el-icon style="font-size:40px;color:#bbb"><Upload /></el-icon>
+                  <div style="color:#666;margin-top:8px">将CSV文件拖到此处，或<em style="color:var(--primary)">点击上传</em></div>
+                </el-upload>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="doImport" :loading="importing" :disabled="!importTable||!importFile" style="background:var(--primary);border-color:var(--primary)">开始导入</el-button>
+              </el-form-item>
+            </el-form>
+            <div class="tips">
+              <p><b>注意事项：</b></p>
+              <p>1. CSV文件第一行为表头，需与数据库字段名一致</p>
+              <p>2. 文件编码建议使用 UTF-8</p>
+              <p>3. 日期格式为 YYYY-MM-DD</p>
+              <p>4. 导入会覆盖已有同编号数据，请谨慎操作</p>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script>
+const { createApp, ref, reactive, computed, onMounted, watch, nextTick, onBeforeUnmount } = Vue;
+const { ElMessage, ElMessageBox } = ElementPlus;
+
+const API_BASE = '/api';
+
+function getAuthHeaders() {
+  const token = localStorage.getItem('cnas_token');
+  return token ? { 'Authorization': 'Bearer ' + token } : {};
+}
+
+async function api(method, path, data) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }
+  };
+  if (data && method !== 'GET') opts.body = JSON.stringify(data);
+  const res = await fetch(API_BASE + path, opts);
+  if (res.status === 401) {
+    localStorage.removeItem('cnas_token');
+    localStorage.removeItem('cnas_user');
+    window.location.hash = '#/login';
+    throw new Error('未授权');
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || res.statusText);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+const app = createApp({
+  setup() {
+    const currentRoute = ref('login');
+    const currentUser = ref(null);
+    const loginForm = reactive({ username: '', password: '' });
+    const loginRules = {
+      username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+      password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+    };
+    const loginFormRef = ref(null);
+    const loginLoading = ref(false);
+
+    const alertTypeMap = { '校准到期': 'danger', '授权到期': 'warning', '文件评审': 'info', 'NCR整改': 'danger' };
+
+    // Dashboard
+    const dashStats = ref([]);
+    const dashAlerts = ref([]);
+    const chartEquipStatus = ref(null);
+    const chartAuthStatus = ref(null);
+    const chartNcrSource = ref(null);
+    const chartDocLevel = ref(null);
+    let charts = [];
+
+    // Personnel
+    const personnelList = ref([]);
+    const personnelLoading = ref(false);
+    const personnelSearch = ref('');
+    const personnelTotal = ref(0);
+    const personnelDialogVisible = ref(false);
+    const personnelSaving = ref(false);
+    const personnelForm = reactive({ id: null, name: '', employee_id: '', position: '', department: '', qualification: '', authorization_status: '未授权', entry_date: '', phone: '', remark: '' });
+
+    // Equipment
+    const equipList = ref([]);
+    const equipLoading = ref(false);
+    const equipSearch = ref('');
+    const equipTotal = ref(0);
+    const equipDialogVisible = ref(false);
+    const equipSaving = ref(false);
+    const equipForm = reactive({ id: null, name: '', asset_id: '', model: '', manufacturer: '', location: '', status: '正常', last_calibration_date: '', next_calibration_date: '', remark: '' });
+
+    // Quality Control
+    const qcList = ref([]);
+    const qcLoading = ref(false);
+    const qcDialogVisible = ref(false);
+    const qcSaving = ref(false);
+    const qcForm = reactive({ item: '', method: '', frequency: '', result: '合格', executor: '', execute_date: '', remark: '' });
+
+    // Internal Audit
+    const iaList = ref([]);
+    const iaLoading = ref(false);
+    const iaDialogVisible = ref(false);
+    const iaSaving = ref(false);
+    const iaForm = reactive({ audit_year: '', audit_scope: '', lead_auditor: '', audit_date: '', status: '计划中', remark: '' });
+
+    // Management Review
+    const mrList = ref([]);
+    const mrLoading = ref(false);
+    const mrDialogVisible = ref(false);
+    const mrSaving = ref(false);
+    const mrForm = reactive({ review_year: '', review_topic: '', chairman: '', review_date: '', status: '计划中', conclusion: '', remark: '' });
+
+    // Detection Projects
+    const dpList = ref([]);
+    const dpLoading = ref(false);
+    const dpSearch = ref('');
+    const dpTotal = ref(0);
+    const dpDialogVisible = ref(false);
+    const dpSaving = ref(false);
+    const dpForm = reactive({ project_name: '', standard: '', method: '', personnel_name: '', equipment_name: '', status: '未开始', start_date: '', end_date: '', remark: '' });
+
+    // Documents
+    const docList = ref([]);
+    const docLoading = ref(false);
+    const docSearch = ref('');
+    const docTotal = ref(0);
+    const docDialogVisible = ref(false);
+    const docSaving = ref(false);
+    const docForm = reactive({ doc_number: '', title: '', level: '三级', version: '1.0', category: '', status: '草稿', author: '', approve_date: '', review_date: '', remark: '' });
+
+    // NCRs
+    const ncrList = ref([]);
+    const ncrLoading = ref(false);
+    const ncrDialogVisible = ref(false);
+    const ncrSaving = ref(false);
+    const ncrForm = reactive({ id: null, ncr_number: '', source: '', description: '', severity: '一般', responsible: '', status: '待整改', found_date: '', due_date: '', rectification: '', remark: '' });
+    const ncrActionDialogVisible = ref(false);
+    const ncrActionTitle = ref('');
+    const ncrActionType = ref('');
+    const ncrActionSaving = ref(false);
+    const ncrCurrentItem = ref(null);
+    const ncrActionForm = reactive({ rectification: '', rectification_date: '', verification_result: '通过', verification_comment: '', close_comment: '' });
+
+    // Import
+    const importTable = ref('');
+    const importFile = ref(null);
+    const importing = ref(false);
+    const importUploadRef = ref(null);
+
+    function ncrStatusType(s) {
+      if (s === '已闭环') return 'success';
+      if (s === '待整改') return 'danger';
+      if (s === '整改中') return 'warning';
+      if (s === '待验证') return 'primary';
+      return 'info';
+    }
+
+    // Routing
+    function navigateTo(route) {
+      window.location.hash = '#/' + route;
+    }
+
+    function parseRoute() {
+      const hash = window.location.hash.replace('#/', '') || 'login';
+      if (!localStorage.getItem('cnas_token') && hash !== 'login') {
+        currentRoute.value = 'login';
+        window.location.hash = '#/login';
+        return;
+      }
+      if (localStorage.getItem('cnas_token') && hash === 'login') {
+        currentRoute.value = 'dashboard';
+        window.location.hash = '#/dashboard';
+        return;
+      }
+      currentRoute.value = hash;
+    }
+
+    function handleUserCommand(cmd) {
+      if (cmd === 'logout') {
+        localStorage.removeItem('cnas_token');
+        localStorage.removeItem('cnas_user');
+        currentUser.value = null;
+        window.location.hash = '#/login';
+      } else if (cmd === 'profile') {
+        navigateTo('dashboard');
+      }
+    }
+
+    // Login
+    async function handleLogin() {
+      if (!loginFormRef.value) return;
+      await loginFormRef.value.validate();
+      loginLoading.value = true;
+      try {
+        const res = await fetch(API_BASE + '/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'username=' + encodeURIComponent(loginForm.username) + '&password=' + encodeURIComponent(loginForm.password)
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: '登录失败' }));
+          throw new Error(err.detail || '登录失败');
+        }
+        const data = await res.json();
+        localStorage.setItem('cnas_token', data.access_token);
+        if (data.user) {
+          localStorage.setItem('cnas_user', JSON.stringify(data.user));
+          currentUser.value = data.user;
+        }
+        ElMessage.success('登录成功');
+        window.location.hash = '#/dashboard';
+      } catch (e) {
+        ElMessage.error(e.message);
+      } finally {
+        loginLoading.value = false;
+      }
+    }
+
+    // Dashboard
+    async function loadDashboard() {
+      try {
+        const data = await api('GET', '/dashboard/stats');
+        if (!data) return;
+        const s = data.stats || data;
+        dashStats.value = [
+          { label: '人员总数', value: s.personnel_count ?? 0, icon: '\uD83D\uDC64', color: '#1a237e' },
+          { label: '设备总数', value: s.equipment_count ?? 0, icon: '\uD83D\uDD27', color: '#0d47a1' },
+          { label: '已授权人员', value: s.authorized_count ?? 0, icon: '\u2705', color: '#2e7d32' },
+          { label: '待校准设备', value: s.calibration_due_count ?? 0, icon: '\u23F0', color: '#e65100' },
+          { label: '检测项目数', value: s.detection_count ?? 0, icon: '\uD83D\uDCCB', color: '#4a148c' },
+          { label: '受控文件数', value: s.document_count ?? 0, icon: '\uD83D\uDCC4', color: '#006064' },
+          { label: '未闭环NCR', value: s.open_ncr_count ?? 0, icon: '\u26A0\uFE0F', color: '#b71c1c' },
+          { label: '预警事项', value: (data.alerts || []).length, icon: '\uD83D\uDCE1', color: '#f57f17' }
+        ];
+        dashAlerts.value = data.alerts || [];
+        await nextTick();
+        renderCharts(s);
+      } catch (e) {
+        console.error('Dashboard load error:', e);
+      }
+    }
+
+    function renderCharts(s) {
+      charts.forEach(c => c.dispose && c.dispose());
+      charts = [];
+      const eqEl = chartEquipStatus.value;
+      const auEl = chartAuthStatus.value;
+      const ncrEl = chartNcrSource.value;
+      const docEl = chartDocLevel.value;
+      if (eqEl) {
+        const c = echarts.init(eqEl);
+        c.setOption({
+          tooltip: { trigger: 'item' },
+          color: ['#2e7d32', '#f57f17', '#c62828', '#9e9e9e'],
+          series: [{ type: 'pie', radius: ['40%', '70%'], label: { formatter: '{b}: {c}' }, data: s.equipment_status_distribution || [{ name: '正常', value: 0 }, { name: '维修中', value: 0 }, { name: '停用', value: 0 }, { name: '报废', value: 0 }] }]
+        });
+        charts.push(c);
+      }
+      if (auEl) {
+        const c = echarts.init(auEl);
+        c.setOption({
+          tooltip: { trigger: 'item' },
+          color: ['#2e7d32', '#f57f17', '#c62828'],
+          series: [{ type: 'pie', radius: ['40%', '70%'], label: { formatter: '{b}: {c}' }, data: s.authorization_status_distribution || [{ name: '已授权', value: 0 }, { name: '待授权', value: 0 }, { name: '未授权', value: 0 }] }]
+        });
+        charts.push(c);
+      }
+      if (ncrEl) {
+        const c = echarts.init(ncrEl);
+        const srcData = s.ncr_source_distribution || [];
+        c.setOption({
+          tooltip: { trigger: 'axis' },
+          color: ['#1a237e'],
+          xAxis: { type: 'category', data: srcData.map(d => d.name || d.source) },
+          yAxis: { type: 'value' },
+          series: [{ type: 'bar', data: srcData.map(d => d.value || d.count), barWidth: 40, itemStyle: { borderRadius: [4, 4, 0, 0] } }]
+        });
+        charts.push(c);
+      }
+      if (docEl) {
+        const c = echarts.init(docEl);
+        c.setOption({
+          tooltip: { trigger: 'item' },
+          color: ['#c62828', '#f57f17', '#2e7d32', '#1a237e'],
+          series: [{ type: 'pie', radius: ['40%', '70%'], label: { formatter: '{b}: {c}' }, data: s.document_level_distribution || [{ name: '一级', value: 0 }, { name: '二级', value: 0 }, { name: '三级', value: 0 }, { name: '四级', value: 0 }] }]
+        });
+        charts.push(c);
+      }
+    }
+
+    // Personnel CRUD
+    async function loadPersonnel() {
+      personnelLoading.value = true;
+      try {
+        const params = personnelSearch.value ? '?search=' + encodeURIComponent(personnelSearch.value) : '';
+        const data = await api('GET', '/personnel' + params);
+        personnelList.value = Array.isArray(data) ? data : (data.items || []);
+        personnelTotal.value = data.total || personnelList.value.length;
+      } catch (e) { ElMessage.error(e.message); }
+      finally { personnelLoading.value = false; }
+    }
+    function openPersonnelDialog(row) {
+      if (row) {
+        Object.keys(personnelForm).forEach(k => personnelForm[k] = row[k] ?? '');
+        personnelForm.id = row.id;
+      } else {
+        Object.keys(personnelForm).forEach(k => personnelForm[k] = k === 'authorization_status' ? '未授权' : '');
+        personnelForm.id = null;
+      }
+      personnelDialogVisible.value = true;
+    }
+    async function savePersonnel() {
+      personnelSaving.value = true;
+      try {
+        const body = { ...personnelForm };
+        delete body.id;
+        if (personnelForm.id) {
+          await api('PUT', '/personnel/' + personnelForm.id, body);
+        } else {
+          await api('POST', '/personnel', body);
+        }
+        ElMessage.success('保存成功');
+        personnelDialogVisible.value = false;
+        loadPersonnel();
+      } catch (e) { ElMessage.error(e.message); }
+      finally { personnelSaving.value = false; }
+    }
+    async function deletePersonnel(row) {
+      try {
+        await ElMessageBox.confirm('确认删除该人员？', '提示', { type: 'warning' });
+        await api('DELETE', '/personnel/' + row.id);
+        ElMessage.success('删除成功');
+        loadPersonnel();
+      } catch (e) { if (e !== 'cancel') ElMessage.error(e.message); }
+    }
+
+    // Equipment CRUD
+    async function loadEquipment() {
+      equipLoading.value = true;
+      try {
+        const params = equipSearch.value ? '?search=' + encodeURIComponent(equipSearch.value) : '';
+        const data = await api('GET', '/equipment' + params);
+        equipList.value = Array.isArray(data) ? data : (data.items || []);
+        equipTotal.value = data.total || equipList.value.length;
+      } catch (e) { ElMessage.error(e.message); }
+      finally { equipLoading.value = false; }
+    }
+    function openEquipDialog(row) {
+      if (row) {
+        Object.keys(equipForm).forEach(k => equipForm[k] = row[k] ?? '');
+        equipForm.id = row.id;
+      } else {
+        Object.keys(equipForm).forEach(k => equipForm[k] = k === 'status' ? '正常' : '');
+        equipForm.id = null;
+      }
+      equipDialogVisible.value = true;
+    }
+    async function saveEquipment() {
+      equipSaving.value = true;
+      try {
+        const body = { ...equipForm };
+        delete body.id;
+        if (equipForm.id) {
+          await api('PUT', '/equipment/' + equipForm.id, body);
+        } else {
+          await api('POST', '/equipment', body);
+        }
+        ElMessage.success('保存成功');
+        equipDialogVisible.value = false;
+        loadEquipment();
+      } catch (e) { ElMessage.error(e.message); }
+      finally { equipSaving.value = false; }
+    }
+    async function deleteEquipment(row) {
+      try {
+        await ElMessageBox.confirm('确认删除该设备？', '提示', { type: 'warning' });
+        await api('DELETE', '/equipment/' + row.id);
+        ElMessage.success('删除成功');
+        loadEquipment();
+      } catch (e) { if (e !== 'cancel') ElMessage.error(e.message); }
+    }
+
+    // Quality Control
+    async function loadQc() {
+      qcLoading.value = true;
+      try {
+        const data = await api('GET', '/quality-controls');
+        qcList.value = Array.isArray(data) ? data : (data.items || []);
+      } catch (e) { ElMessage.error(e.message); }
+      finally { qcLoading.value = false; }
+    }
+    function openQcDialog() {
+      Object.keys(qcForm).forEach(k => qcForm[k] = k === 'result' ? '合格' : '');
+      qcDialogVisible.value = true;
+    }
+    async function saveQc() {
+      qcSaving.value = true;
+      try {
+        await api('POST', '/quality-controls', { ...qcForm });
+        ElMessage.success('保存成功');
+        qcDialogVisible.value = false;
+        loadQc();
+      } catch (e) { ElMessage.error(e.message); }
+      finally { qcSaving.value = false; }
+    }
+    async function deleteQc(row) {
+      try {
+        await ElMessageBox.confirm('确认删除？', '提示', { type: 'warning' });
+        await api('DELETE', '/quality-controls/' + row.id);
+        ElMessage.success('删除成功');
+        loadQc();
+      } catch (e) { if (e !== 'cancel') ElMessage.error(e.message); }
+    }
+
+    // Internal Audit
+    async function loadIa() {
+      iaLoading.value = true;
+      try {
+        const data = await api('GET', '/internal-audits');
+        iaList.value = Array.isArray(data) ? data : (data.items || []);
+      } catch (e) { ElMessage.error(e.message); }
+      finally { iaLoading.value = false; }
+    }
+    function openIaDialog() {
+      Object.keys(iaForm).forEach(k => iaForm[k] = k === 'status' ? '计划中' : '');
+      iaDialogVisible.value = true;
+    }
+    async function saveIa() {
+      iaSaving.value = true;
+      try {
+        await api('POST', '/internal-audits', { ...iaForm });
+        ElMessage.success('保存成功');
+        iaDialogVisible.value = false;
+        loadIa();
+      } catch (e) { ElMessage.error(e.message); }
+      finally { iaSaving.value = false; }
+    }
+    async function deleteIa(row) {
+      try {
+        await ElMessageBox.confirm('确认删除？', '提示', { type: 'warning' });
+        await api('DELETE', '/internal-audits/' + row.id);
+        ElMessage.success('删除成功');
+        loadIa();
+      } catch (e) { if (e !== 'cancel') ElMessage.error(e.message); }
+    }
+
+    // Management Review
+    async function loadMr() {
+      mrLoading.value = true;
+      try {
+        const data = await api('GET', '/management-reviews');
+        mrList.value = Array.isArray(data) ? data : (data.items || []);
+      } catch (e) { ElMessage.error(e.message); }
+      finally { mrLoading.value = false; }
+    }
+    function openMrDialog() {
+      Object.keys(mrForm).forEach(k => mrForm[k] = k === 'status' ? '计划中' : '');
+      mrDialogVisible.value = true;
+    }
+    async function saveMr() {
+      mrSaving.value = true;
+      try {
+        await api('POST', '/management-reviews', { ...mrForm });
+        ElMessage.success('保存成功');
+        mrDialogVisible.value = false;
+        loadMr();
+      } catch (e) { ElMessage.error(e.message); }
+      finally { mrSaving.value = false; }
+    }
+    async function deleteMr(row) {
+      try {
+        await ElMessageBox.confirm('确认删除？', '提示', { type: 'warning' });
+        await api('DELETE', '/management-reviews/' + row.id);
+        ElMessage.success('删除成功');
+        loadMr();
+      } catch (e) { if (e !== 'cancel') ElMessage.error(e.message); }
+    }
+
+    // Detection Projects
+    async function loadDetection() {
+      dpLoading.value = true;
+      try {
+        const params = dpSearch.value ? '?search=' + encodeURIComponent(dpSearch.value) : '';
+        const data = await api('GET', '/detection-projects' + params);
+        dpList.value = Array.isArray(data) ? data : (data.items || []);
+        dpTotal.value = data.total || dpList.value.length;
+      } catch (e) { ElMessage.error(e.message); }
+      finally { dpLoading.value = false; }
+    }
+    function openDpDialog() {
+      Object.keys(dpForm).forEach(k => dpForm[k] = k === 'status' ? '未开始' : '');
+      dpDialogVisible.value = true;
+    }
+    async function saveDp() {
+      dpSaving.value = true;
+      try {
+        await api('POST', '/detection-projects', { ...dpForm });
+        ElMessage.success('保存成功');
+        dpDialogVisible.value = false;
+        loadDetection();
+      } catch (e) { ElMessage.error(e.message); }
+      finally { dpSaving.value = false; }
+    }
+    async function deleteDp(row) {
+      try {
+        await ElMessageBox.confirm('确认删除？', '提示', { type: 'warning' });
+        await api('DELETE', '/detection-projects/' + row.id);
+        ElMessage.success('删除成功');
+        loadDetection();
+      } catch (e) { if (e !== 'cancel') ElMessage.error(e.message); }
+    }
+
+    // Documents
+    async function loadDocuments() {
+      docLoading.value = true;
+      try {
+        const params = docSearch.value ? '?search=' + encodeURIComponent(docSearch.value) : '';
+        const data = await api('GET', '/documents' + params);
+        docList.value = Array.isArray(data) ? data : (data.items || []);
+        docTotal.value = data.total || docList.value.length;
+      } catch (e) { ElMessage.error(e.message); }
+      finally { docLoading.value = false; }
+    }
+    function openDocDialog() {
+      Object.keys(docForm).forEach(k => docForm[k] = k === 'level' ? '三级' : k === 'status' ? '草稿' : k === 'version' ? '1.0' : '');
+      docDialogVisible.value = true;
+    }
+    async function saveDoc() {
+      docSaving.value = true;
+      try {
+        await api('POST', '/documents', { ...docForm });
+        ElMessage.success('保存成功');
+        docDialogVisible.value = false;
+        loadDocuments();
+      } catch (e) { ElMessage.error(e.message); }
+      finally { docSaving.value = false; }
+    }
+    async function deleteDoc(row) {
+      try {
+        await ElMessageBox.confirm('确认删除？', '提示', { type: 'warning' });
+        await api('DELETE', '/documents/' + row.id);
+        ElMessage.success('删除成功');
+        loadDocuments();
+      } catch (e) { if (e !== 'cancel') ElMessage.error(e.message); }
+    }
+
+    // NCRs
+    async function loadNcr() {
+      ncrLoading.value = true;
+      try {
+        const data = await api('GET', '/ncrs');
+        ncrList.value = Array.isArray(data) ? data : (data.items || []);
+      } catch (e) { ElMessage.error(e.message); }
+      finally { ncrLoading.value = false; }
+    }
+    function openNcrDialog(row) {
+      if (row) {
+        Object.keys(ncrForm).forEach(k => ncrForm[k] = row[k] ?? '');
+        ncrForm.id = row.id;
+      } else {
+        Object.keys(ncrForm).forEach(k => ncrForm[k] = k === 'severity' ? '一般' : k === 'status' ? '待整改' : '');
+        ncrForm.id = null;
+      }
+      ncrDialogVisible.value = true;
+    }
+    async function saveNcr() {
+      ncrSaving.value = true;
+      try {
+        const body = { ...ncrForm };
+        delete body.id;
+        if (ncrForm.id) {
+          await api('PUT', '/ncrs/' + ncrForm.id, body);
+        } else {
+          await api('POST', '/ncrs', body);
+        }
+        ElMessage.success('保存成功');
+        ncrDialogVisible.value = false;
+        loadNcr();
+      } catch (e) { ElMessage.error(e.message); }
+      finally { ncrSaving.value = false; }
+    }
+    async function deleteNcr(row) {
+      try {
+        await ElMessageBox.confirm('确认删除该NCR？', '提示', { type: 'warning' });
+        await api('DELETE', '/ncrs/' + row.id);
+        ElMessage.success('删除成功');
+        loadNcr();
+      } catch (e) { if (e !== 'cancel') ElMessage.error(e.message); }
+    }
+    function ncrAction(row, type) {
+      ncrCurrentItem.value = row;
+      ncrActionType.value = type;
+      Object.keys(ncrActionForm).forEach(k => ncrActionForm[k] = k === 'verification_result' ? '通过' : '');
+      if (type === 'rectifying') ncrActionTitle.value = '提交整改';
+      else if (type === 'verifying') ncrActionTitle.value = '验证整改';
+      else ncrActionTitle.value = '闭环确认';
+      ncrActionDialogVisible.value = true;
+    }
+    async function submitNcrAction() {
+      ncrActionSaving.value = true;
+      try {
+        const id = ncrCurrentItem.value.id;
+        let body = {};
+        if (ncrActionType.value === 'rectifying') {
+          body = { status: '整改中', rectification: ncrActionForm.rectification, rectification_date: ncrActionForm.rectification_date };
+        } else if (ncrActionType.value === 'verifying') {
+          body = { status: '待验证', verification_result: ncrActionForm.verification_result, verification_comment: ncrActionForm.verification_comment };
+        } else {
+          body = { status: '已闭环', close_comment: ncrActionForm.close_comment };
+        }
+        await api('PUT', '/ncrs/' + id, body);
+        ElMessage.success('操作成功');
+        ncrActionDialogVisible.value = false;
+        loadNcr();
+      } catch (e) { ElMessage.error(e.message); }
+      finally { ncrActionSaving.value = false; }
+    }
+
+    // Import
+    function handleImportFile(file) {
+      importFile.value = file.raw;
+    }
+    async function doImport() {
+      if (!importTable.value || !importFile.value) return;
+      importing.value = true;
+      try {
+        const formData = new FormData();
+        formData.append('file', importFile.value);
+        const token = localStorage.getItem('cnas_token');
+        const res = await fetch(API_BASE + '/import/' + importTable.value, {
+          method: 'POST',
+          headers: { ...getAuthHeaders() },
+          body: formData
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: '导入失败' }));
+          throw new Error(err.detail || '导入失败');
+        }
+        const data = await res.json();
+        ElMessage.success('导入成功，共导入 ' + (data.imported_count || data.count || 0) + ' 条记录');
+        importFile.value = null;
+        if (importUploadRef.value) importUploadRef.value.clearFiles();
+      } catch (e) { ElMessage.error(e.message); }
+      finally { importing.value = false; }
+    }
+
+    // Route change handler
+    watch(currentRoute, async (val) => {
+      if (val === 'login') return;
+      await nextTick();
+      if (val === 'dashboard') loadDashboard();
+      else if (val === 'personnel') loadPersonnel();
+      else if (val === 'equipment') loadEquipment();
+      else if (val === 'quality-control') loadQc();
+      else if (val === 'internal-audit') loadIa();
+      else if (val === 'management-review') loadMr();
+      else if (val === 'detection') loadDetection();
+      else if (val === 'documents') loadDocuments();
+      else if (val === 'ncrs') loadNcr();
+    });
+
+    onMounted(() => {
+      const savedUser = localStorage.getItem('cnas_user');
+      if (savedUser) {
+        try { currentUser.value = JSON.parse(savedUser); } catch (e) {}
+      }
+      parseRoute();
+      window.addEventListener('hashchange', parseRoute);
+      window.addEventListener('resize', () => {
+        charts.forEach(c => c.resize && c.resize());
+      });
+    });
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('hashchange', parseRoute);
+      charts.forEach(c => c.dispose && c.dispose());
+    });
+
+    return {
+      currentRoute, currentUser, loginForm, loginRules, loginFormRef, loginLoading,
+      alertTypeMap, navigateTo, handleUserCommand, handleLogin,
+      dashStats, dashAlerts, chartEquipStatus, chartAuthStatus, chartNcrSource, chartDocLevel,
+      personnelList, personnelLoading, personnelSearch, personnelTotal, personnelDialogVisible, personnelSaving, personnelForm,
+      loadPersonnel, openPersonnelDialog, savePersonnel, deletePersonnel,
+      equipList, equipLoading, equipSearch, equipTotal, equipDialogVisible, equipSaving, equipForm,
+      loadEquipment, openEquipDialog, saveEquipment, deleteEquipment,
+      qcList, qcLoading, qcDialogVisible, qcSaving, qcForm,
+      loadQc, openQcDialog, saveQc, deleteQc,
+      iaList, iaLoading, iaDialogVisible, iaSaving, iaForm,
+      loadIa, openIaDialog, saveIa, deleteIa,
+      mrList, mrLoading, mrDialogVisible, mrSaving, mrForm,
+      loadMr, openMrDialog, saveMr, deleteMr,
+      dpList, dpLoading, dpSearch, dpTotal, dpDialogVisible, dpSaving, dpForm,
+      loadDetection, openDpDialog, saveDp, deleteDp,
+      docList, docLoading, docSearch, docTotal, docDialogVisible, docSaving, docForm,
+      loadDocuments, openDocDialog, saveDoc, deleteDoc,
+      ncrList, ncrLoading, ncrDialogVisible, ncrSaving, ncrForm,
+      ncrActionDialogVisible, ncrActionTitle, ncrActionType, ncrActionSaving, ncrActionForm,
+      ncrStatusType, loadNcr, openNcrDialog, saveNcr, deleteNcr, ncrAction, submitNcrAction,
+      importTable, importFile, importing, importUploadRef,
+      handleImportFile, doImport
+    };
+  }
+});
+
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component);
+}
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>

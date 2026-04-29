@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  cnas-lab:
+    build: .
+    container_name: cnas-lab-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - cnas-lab-data:/app/backend/data
+      - cnas-lab-uploads:/app/backend/uploads
+    environment:
+      - DATABASE_URL=sqlite:///./data/cnas_lab.db
+      - SECRET_KEY=cnas-lab-secret-key-change-in-production
+      - UPLOAD_DIR=./uploads
+    restart: unless-stopped
+
+volumes:
+  cnas-lab-data:
+  cnas-lab-uploads:
