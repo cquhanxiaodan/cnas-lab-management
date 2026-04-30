@@ -222,21 +222,14 @@
           <div class="alert-card">
             <h4>预警列表</h4>
             <el-table :data="dashAlerts" stripe size="small">
-              <el-table-column prop="type" label="类型" width="120">
+              <el-table-column label="预警内容">
                 <template #default="{row}">
-                  <el-tag :type="alertTypeMap[row.type] || 'warning'" size="small">{{ row.type }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="title" label="预警内容" />
-              <el-table-column prop="deadline" label="截止日期" width="120" />
-              <el-table-column prop="days_left" label="剩余天数" width="100">
-                <template #default="{row}">
-                  <span :style="{color: row.days_left <= 7 ? '#c62828' : row.days_left <= 30 ? '#f57f17' : '#2e7d32'}">{{ row.days_left }} 天</span>
+                  <span>{{ row }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="80">
-                <template #default="{row}">
-                  <el-button type="primary" link size="small" @click="navigateTo(row.route || 'dashboard')">查看</el-button>
+                <template #default>
+                  <el-button type="primary" link size="small">查看</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -256,17 +249,18 @@
               </el-input>
             </div>
             <el-table :data="personnelList" stripe v-loading="personnelLoading">
-              <el-table-column prop="name" label="姓名" width="100" />
               <el-table-column prop="employee_id" label="工号" width="100" />
+              <el-table-column prop="name" label="姓名" width="100" />
               <el-table-column prop="position" label="岗位" width="120" />
               <el-table-column prop="department" label="部门" width="120" />
-              <el-table-column prop="qualification" label="资质" />
-              <el-table-column prop="authorization_status" label="授权状态" width="100">
+              <el-table-column prop="hire_date" label="入职日期" width="120" />
+              <el-table-column prop="status" label="状态" width="80">
                 <template #default="{row}">
-                  <el-tag :type="row.authorization_status==='已授权'?'success':row.authorization_status==='待授权'?'warning':'danger'" size="small">{{ row.authorization_status||'未授权' }}</el-tag>
+                  <el-tag :type="row.status==='在职'?'success':'info'" size="small">{{ row.status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="entry_date" label="入职日期" width="120" />
+              <el-table-column prop="phone" label="联系电话" width="130" />
+              <el-table-column prop="email" label="邮箱" min-width="180" />
               <el-table-column label="操作" width="150" fixed="right">
                 <template #default="{row}">
                   <el-button type="primary" link size="small" @click="openPersonnelDialog(row)">编辑</el-button>
@@ -287,16 +281,20 @@
                 <el-col :span="12"><el-form-item label="部门"><el-input v-model="personnelForm.department" /></el-form-item></el-col>
               </el-row>
               <el-row :gutter="16">
-                <el-col :span="12"><el-form-item label="资质"><el-input v-model="personnelForm.qualification" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="授权状态">
-                  <el-select v-model="personnelForm.authorization_status" style="width:100%">
-                    <el-option label="已授权" value="已授权" /><el-option label="待授权" value="待授权" /><el-option label="未授权" value="未授权" />
+                <el-col :span="12"><el-form-item label="入职日期"><el-date-picker v-model="personnelForm.hire_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="状态">
+                  <el-select v-model="personnelForm.status" style="width:100%">
+                    <el-option label="在职" value="在职" /><el-option label="离职" value="离职" />
                   </el-select>
                 </el-form-item></el-col>
               </el-row>
               <el-row :gutter="16">
-                <el-col :span="12"><el-form-item label="入职日期"><el-date-picker v-model="personnelForm.entry_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
                 <el-col :span="12"><el-form-item label="联系电话"><el-input v-model="personnelForm.phone" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="邮箱"><el-input v-model="personnelForm.email" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="学历"><el-input v-model="personnelForm.education" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="专长"><el-input v-model="personnelForm.specialty" /></el-form-item></el-col>
               </el-row>
               <el-form-item label="备注"><el-input v-model="personnelForm.remark" type="textarea" :rows="2" /></el-form-item>
             </el-form>
@@ -320,18 +318,17 @@
               </el-input>
             </div>
             <el-table :data="equipList" stripe v-loading="equipLoading">
-              <el-table-column prop="name" label="设备名称" width="140" />
-              <el-table-column prop="asset_id" label="资产编号" width="120" />
-              <el-table-column prop="model" label="型号规格" width="140" />
-              <el-table-column prop="manufacturer" label="制造商" width="120" />
+              <el-table-column prop="equipment_id" label="设备编号" width="110" />
+              <el-table-column prop="name" label="设备名称" min-width="180" show-overflow-tooltip />
+              <el-table-column prop="model" label="型号规格" width="140" show-overflow-tooltip />
               <el-table-column prop="location" label="存放位置" width="120" />
-              <el-table-column prop="status" label="状态" width="90">
+              <el-table-column prop="custodian" label="保管人" width="80" />
+              <el-table-column prop="status" label="状态" width="80">
                 <template #default="{row}">
-                  <el-tag :type="row.status==='正常'?'success':row.status==='维修中'?'warning':'danger'" size="small">{{ row.status }}</el-tag>
+                  <el-tag :type="row.status==='在用'?'success':row.status==='维修中'?'warning':row.status==='外出'?'primary':'danger'" size="small">{{ row.status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="last_calibration_date" label="上次校准" width="110" />
-              <el-table-column prop="next_calibration_date" label="下次校准" width="110" />
+              <el-table-column prop="commission_date" label="启用日期" width="110" />
               <el-table-column label="操作" width="150" fixed="right">
                 <template #default="{row}">
                   <el-button type="primary" link size="small" @click="openEquipDialog(row)">编辑</el-button>
@@ -345,23 +342,27 @@
             <el-form :model="equipForm" label-width="90px">
               <el-row :gutter="16">
                 <el-col :span="12"><el-form-item label="设备名称"><el-input v-model="equipForm.name" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="资产编号"><el-input v-model="equipForm.asset_id" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="设备编号"><el-input v-model="equipForm.equipment_id" /></el-form-item></el-col>
               </el-row>
               <el-row :gutter="16">
                 <el-col :span="12"><el-form-item label="型号规格"><el-input v-model="equipForm.model" /></el-form-item></el-col>
                 <el-col :span="12"><el-form-item label="制造商"><el-input v-model="equipForm.manufacturer" /></el-form-item></el-col>
               </el-row>
               <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="资产标签"><el-input v-model="equipForm.asset_tag" /></el-form-item></el-col>
                 <el-col :span="12"><el-form-item label="存放位置"><el-input v-model="equipForm.location" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="保管人"><el-input v-model="equipForm.custodian" /></el-form-item></el-col>
                 <el-col :span="12"><el-form-item label="状态">
                   <el-select v-model="equipForm.status" style="width:100%">
-                    <el-option label="正常" value="正常" /><el-option label="维修中" value="维修中" /><el-option label="停用" value="停用" /><el-option label="报废" value="报废" />
+                    <el-option label="在用" value="在用" /><el-option label="外出" value="外出" /><el-option label="维修中" value="维修中" /><el-option label="停用" value="停用" /><el-option label="报废" value="报废" />
                   </el-select>
                 </el-form-item></el-col>
               </el-row>
               <el-row :gutter="16">
-                <el-col :span="12"><el-form-item label="上次校准"><el-date-picker v-model="equipForm.last_calibration_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="下次校准"><el-date-picker v-model="equipForm.next_calibration_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="验收日期"><el-date-picker v-model="equipForm.acceptance_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="启用日期"><el-date-picker v-model="equipForm.commission_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
               </el-row>
               <el-form-item label="备注"><el-input v-model="equipForm.remark" type="textarea" :rows="2" /></el-form-item>
             </el-form>
@@ -382,17 +383,18 @@
               </div>
             </div>
             <el-table :data="qcList" stripe v-loading="qcLoading">
-              <el-table-column prop="item" label="质控项目" width="160" />
-              <el-table-column prop="method" label="方法" width="140" />
-              <el-table-column prop="frequency" label="频次" width="100" />
-              <el-table-column prop="result" label="结果" width="100">
+              <el-table-column prop="qc_number" label="质控编号" width="130" />
+              <el-table-column prop="qc_type" label="质控类型" width="120" />
+              <el-table-column prop="test_items" label="检测项目" min-width="160" show-overflow-tooltip />
+              <el-table-column prop="plan_date" label="计划日期" width="110" />
+              <el-table-column prop="actual_date" label="实际日期" width="110" />
+              <el-table-column prop="status" label="状态" width="90">
                 <template #default="{row}">
-                  <el-tag :type="row.result==='合格'?'success':'danger'" size="small">{{ row.result }}</el-tag>
+                  <el-tag :type="row.status==='已完成'?'success':row.status==='执行中'?'primary':'info'" size="small">{{ row.status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="executor" label="执行人" width="100" />
-              <el-table-column prop="execute_date" label="执行日期" width="120" />
-              <el-table-column prop="remark" label="备注" />
+              <el-table-column prop="responsible_person" label="负责人" width="90" />
+              <el-table-column prop="result_evaluation" label="结果评价" width="100" />
               <el-table-column label="操作" width="100" fixed="right">
                 <template #default="{row}">
                   <el-button type="danger" link size="small" @click="deleteQc(row)">删除</el-button>
@@ -402,18 +404,24 @@
           </div>
           <el-dialog v-model="qcDialogVisible" title="新增质控记录" width="550px" destroy-on-close>
             <el-form :model="qcForm" label-width="80px">
-              <el-form-item label="质控项目"><el-input v-model="qcForm.item" /></el-form-item>
-              <el-form-item label="方法"><el-input v-model="qcForm.method" /></el-form-item>
-              <el-form-item label="频次"><el-input v-model="qcForm.frequency" /></el-form-item>
-              <el-form-item label="结果">
-                <el-select v-model="qcForm.result" style="width:100%">
-                  <el-option label="合格" value="合格" /><el-option label="不合格" value="不合格" />
-                </el-select>
-              </el-form-item>
               <el-row :gutter="16">
-                <el-col :span="12"><el-form-item label="执行人"><el-input v-model="qcForm.executor" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="执行日期"><el-date-picker v-model="qcForm.execute_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="质控编号"><el-input v-model="qcForm.qc_number" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="质控类型"><el-input v-model="qcForm.qc_type" /></el-form-item></el-col>
               </el-row>
+              <el-form-item label="检测项目"><el-input v-model="qcForm.test_items" /></el-form-item>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="计划日期"><el-date-picker v-model="qcForm.plan_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="实际日期"><el-date-picker v-model="qcForm.actual_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="负责人"><el-input v-model="qcForm.responsible_person" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="状态">
+                  <el-select v-model="qcForm.status" style="width:100%">
+                    <el-option label="待执行" value="待执行" /><el-option label="执行中" value="执行中" /><el-option label="已完成" value="已完成" />
+                  </el-select>
+                </el-form-item></el-col>
+              </el-row>
+              <el-form-item label="结果评价"><el-input v-model="qcForm.result_evaluation" /></el-form-item>
               <el-form-item label="备注"><el-input v-model="qcForm.remark" type="textarea" :rows="2" /></el-form-item>
             </el-form>
             <template #footer>
@@ -433,17 +441,18 @@
               </div>
             </div>
             <el-table :data="iaList" stripe v-loading="iaLoading">
+              <el-table-column prop="audit_number" label="审核编号" width="130" />
               <el-table-column prop="audit_year" label="审核年度" width="100" />
-              <el-table-column prop="audit_scope" label="审核范围" width="160" />
+              <el-table-column prop="audit_round" label="审核轮次" width="100" />
+              <el-table-column prop="plan_date" label="计划日期" width="110" />
+              <el-table-column prop="actual_date" label="实际日期" width="110" />
               <el-table-column prop="lead_auditor" label="主审核员" width="100" />
-              <el-table-column prop="audit_date" label="审核日期" width="120" />
-              <el-table-column prop="findings_count" label="发现问题" width="100" />
-              <el-table-column prop="status" label="状态" width="100">
+              <el-table-column prop="status" label="状态" width="90">
                 <template #default="{row}">
                   <el-tag :type="row.status==='已完成'?'success':row.status==='进行中'?'warning':'info'" size="small">{{ row.status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="remark" label="备注" />
+              <el-table-column prop="ncr_count" label="NCR数量" width="90" />
               <el-table-column label="操作" width="100" fixed="right">
                 <template #default="{row}">
                   <el-button type="danger" link size="small" @click="deleteIa(row)">删除</el-button>
@@ -454,18 +463,22 @@
           <el-dialog v-model="iaDialogVisible" title="新增内审记录" width="550px" destroy-on-close>
             <el-form :model="iaForm" label-width="80px">
               <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="审核编号"><el-input v-model="iaForm.audit_number" /></el-form-item></el-col>
                 <el-col :span="12"><el-form-item label="审核年度"><el-input v-model="iaForm.audit_year" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="审核轮次"><el-input v-model="iaForm.audit_round" /></el-form-item></el-col>
                 <el-col :span="12"><el-form-item label="主审核员"><el-input v-model="iaForm.lead_auditor" /></el-form-item></el-col>
               </el-row>
-              <el-form-item label="审核范围"><el-input v-model="iaForm.audit_scope" /></el-form-item>
               <el-row :gutter="16">
-                <el-col :span="12"><el-form-item label="审核日期"><el-date-picker v-model="iaForm.audit_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="计划日期"><el-date-picker v-model="iaForm.plan_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
                 <el-col :span="12"><el-form-item label="状态">
                   <el-select v-model="iaForm.status" style="width:100%">
                     <el-option label="计划中" value="计划中" /><el-option label="进行中" value="进行中" /><el-option label="已完成" value="已完成" />
                   </el-select>
                 </el-form-item></el-col>
               </el-row>
+              <el-form-item label="审核部门"><el-input v-model="iaForm.audited_departments" /></el-form-item>
               <el-form-item label="备注"><el-input v-model="iaForm.remark" type="textarea" :rows="2" /></el-form-item>
             </el-form>
             <template #footer>
@@ -485,16 +498,16 @@
               </div>
             </div>
             <el-table :data="mrList" stripe v-loading="mrLoading">
+              <el-table-column prop="mr_number" label="评审编号" width="130" />
               <el-table-column prop="review_year" label="评审年度" width="100" />
-              <el-table-column prop="review_topic" label="评审主题" width="180" />
-              <el-table-column prop="chairman" label="主持人" width="100" />
-              <el-table-column prop="review_date" label="评审日期" width="120" />
-              <el-table-column prop="status" label="状态" width="100">
+              <el-table-column prop="plan_date" label="计划日期" width="110" />
+              <el-table-column prop="actual_date" label="实际日期" width="110" />
+              <el-table-column prop="host" label="主持人" width="100" />
+              <el-table-column prop="status" label="状态" width="90">
                 <template #default="{row}">
                   <el-tag :type="row.status==='已完成'?'success':row.status==='进行中'?'warning':'info'" size="small">{{ row.status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="conclusion" label="评审结论" />
               <el-table-column label="操作" width="100" fixed="right">
                 <template #default="{row}">
                   <el-button type="danger" link size="small" @click="deleteMr(row)">删除</el-button>
@@ -505,19 +518,21 @@
           <el-dialog v-model="mrDialogVisible" title="新增管评记录" width="550px" destroy-on-close>
             <el-form :model="mrForm" label-width="80px">
               <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="评审编号"><el-input v-model="mrForm.mr_number" /></el-form-item></el-col>
                 <el-col :span="12"><el-form-item label="评审年度"><el-input v-model="mrForm.review_year" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="主持人"><el-input v-model="mrForm.chairman" /></el-form-item></el-col>
               </el-row>
-              <el-form-item label="评审主题"><el-input v-model="mrForm.review_topic" /></el-form-item>
               <el-row :gutter="16">
-                <el-col :span="12"><el-form-item label="评审日期"><el-date-picker v-model="mrForm.review_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="主持人"><el-input v-model="mrForm.host" /></el-form-item></el-col>
                 <el-col :span="12"><el-form-item label="状态">
                   <el-select v-model="mrForm.status" style="width:100%">
                     <el-option label="计划中" value="计划中" /><el-option label="进行中" value="进行中" /><el-option label="已完成" value="已完成" />
                   </el-select>
                 </el-form-item></el-col>
               </el-row>
-              <el-form-item label="评审结论"><el-input v-model="mrForm.conclusion" type="textarea" :rows="2" /></el-form-item>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="计划日期"><el-date-picker v-model="mrForm.plan_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="实际日期"><el-date-picker v-model="mrForm.actual_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+              </el-row>
               <el-form-item label="备注"><el-input v-model="mrForm.remark" type="textarea" :rows="2" /></el-form-item>
             </el-form>
             <template #footer>
@@ -540,18 +555,17 @@
               </el-input>
             </div>
             <el-table :data="dpList" stripe v-loading="dpLoading">
-              <el-table-column prop="project_name" label="项目名称" width="180" />
-              <el-table-column prop="standard" label="检测标准" width="160" />
-              <el-table-column prop="method" label="检测方法" width="140" />
-              <el-table-column prop="personnel_name" label="负责人" width="100" />
-              <el-table-column prop="equipment_name" label="使用设备" width="120" />
+              <el-table-column prop="project_number" label="项目编号" width="140" />
+              <el-table-column prop="project_name" label="项目名称" min-width="180" show-overflow-tooltip />
+              <el-table-column prop="customer_name" label="客户名称" width="160" show-overflow-tooltip />
+              <el-table-column prop="test_domain" label="检测领域" width="160" show-overflow-tooltip />
+              <el-table-column prop="plan_complete_date" label="计划完成" width="110" />
               <el-table-column prop="status" label="状态" width="90">
                 <template #default="{row}">
-                  <el-tag :type="row.status==='进行中'?'primary':row.status==='已完成'?'success':'info'" size="small">{{ row.status }}</el-tag>
+                  <el-tag :type="row.status==='已完成'?'success':row.status==='报告编制'?'primary':row.status==='进行中'?'warning':'info'" size="small">{{ row.status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="start_date" label="开始日期" width="110" />
-              <el-table-column prop="end_date" label="结束日期" width="110" />
+              <el-table-column prop="project_manager" label="项目负责人" width="100" />
               <el-table-column label="操作" width="100" fixed="right">
                 <template #default="{row}">
                   <el-button type="danger" link size="small" @click="deleteDp(row)">删除</el-button>
@@ -562,24 +576,24 @@
           </div>
           <el-dialog v-model="dpDialogVisible" title="新增检测项目" width="600px" destroy-on-close>
             <el-form :model="dpForm" label-width="80px">
-              <el-form-item label="项目名称"><el-input v-model="dpForm.project_name" /></el-form-item>
               <el-row :gutter="16">
-                <el-col :span="12"><el-form-item label="检测标准"><el-input v-model="dpForm.standard" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="检测方法"><el-input v-model="dpForm.method" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="项目编号"><el-input v-model="dpForm.project_number" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="项目名称"><el-input v-model="dpForm.project_name" /></el-form-item></el-col>
+              </el-row>
+              <el-form-item label="客户名称"><el-input v-model="dpForm.customer_name" /></el-form-item>
+              <el-form-item label="检测领域"><el-input v-model="dpForm.test_domain" /></el-form-item>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="申请日期"><el-date-picker v-model="dpForm.application_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="计划完成"><el-date-picker v-model="dpForm.plan_complete_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
               </el-row>
               <el-row :gutter="16">
-                <el-col :span="12"><el-form-item label="负责人"><el-input v-model="dpForm.personnel_name" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="使用设备"><el-input v-model="dpForm.equipment_name" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="项目负责人"><el-input v-model="dpForm.project_manager" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="状态">
+                  <el-select v-model="dpForm.status" style="width:100%">
+                    <el-option label="未开始" value="未开始" /><el-option label="进行中" value="进行中" /><el-option label="报告编制" value="报告编制" /><el-option label="已完成" value="已完成" />
+                  </el-select>
+                </el-form-item></el-col>
               </el-row>
-              <el-row :gutter="16">
-                <el-col :span="12"><el-form-item label="开始日期"><el-date-picker v-model="dpForm.start_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="结束日期"><el-date-picker v-model="dpForm.end_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
-              </el-row>
-              <el-form-item label="状态">
-                <el-select v-model="dpForm.status" style="width:100%">
-                  <el-option label="未开始" value="未开始" /><el-option label="进行中" value="进行中" /><el-option label="已完成" value="已完成" />
-                </el-select>
-              </el-form-item>
               <el-form-item label="备注"><el-input v-model="dpForm.remark" type="textarea" :rows="2" /></el-form-item>
             </el-form>
             <template #footer>
@@ -603,22 +617,21 @@
             </div>
             <el-table :data="docList" stripe v-loading="docLoading">
               <el-table-column prop="doc_number" label="文件编号" width="140" />
-              <el-table-column prop="title" label="文件名称" width="200" />
-              <el-table-column prop="level" label="层级" width="80">
+              <el-table-column prop="doc_name" label="文件名称" min-width="180" show-overflow-tooltip />
+              <el-table-column prop="doc_level" label="层级" width="90">
                 <template #default="{row}">
-                  <el-tag :type="row.level==='一级'?'danger':row.level==='二级'?'warning':'success'" size="small">{{ row.level }}</el-tag>
+                  <el-tag :type="row.doc_level==='一级手册'?'danger':row.doc_level==='二级程序'?'warning':row.doc_level==='三级SOP'?'primary':'success'" size="small">{{ row.doc_level }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="version" label="版本" width="70" />
-              <el-table-column prop="category" label="类别" width="100" />
-              <el-table-column prop="status" label="状态" width="80">
+              <el-table-column prop="cnas_chapter" label="CNAS章节" width="120" show-overflow-tooltip />
+              <el-table-column prop="current_version" label="版本" width="70" />
+              <el-table-column prop="effective_date" label="生效日期" width="110" />
+              <el-table-column prop="status" label="状态" width="90">
                 <template #default="{row}">
-                  <el-tag :type="row.status==='生效'?'success':'warning'" size="small">{{ row.status }}</el-tag>
+                  <el-tag :type="row.status==='现行有效'?'success':'warning'" size="small">{{ row.status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="author" label="编制人" width="80" />
-              <el-table-column prop="approve_date" label="批准日期" width="110" />
-              <el-table-column prop="review_date" label="评审日期" width="110" />
+              <el-table-column prop="next_review_date" label="下次评审" width="110" />
               <el-table-column label="操作" width="100" fixed="right">
                 <template #default="{row}">
                   <el-button type="danger" link size="small" @click="deleteDoc(row)">删除</el-button>
@@ -631,27 +644,31 @@
             <el-form :model="docForm" label-width="80px">
               <el-row :gutter="16">
                 <el-col :span="12"><el-form-item label="文件编号"><el-input v-model="docForm.doc_number" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="文件名称"><el-input v-model="docForm.title" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="文件名称"><el-input v-model="docForm.doc_name" /></el-form-item></el-col>
               </el-row>
               <el-row :gutter="16">
                 <el-col :span="8"><el-form-item label="层级">
-                  <el-select v-model="docForm.level" style="width:100%">
-                    <el-option label="一级" value="一级" /><el-option label="二级" value="二级" /><el-option label="三级" value="三级" /><el-option label="四级" value="四级" />
+                  <el-select v-model="docForm.doc_level" style="width:100%">
+                    <el-option label="一级手册" value="一级手册" /><el-option label="二级程序" value="二级程序" /><el-option label="三级SOP" value="三级SOP" /><el-option label="四级记录" value="四级记录" />
                   </el-select>
                 </el-form-item></el-col>
-                <el-col :span="8"><el-form-item label="版本"><el-input v-model="docForm.version" /></el-form-item></el-col>
-                <el-col :span="8"><el-form-item label="类别"><el-input v-model="docForm.category" /></el-form-item></el-col>
-              </el-row>
-              <el-row :gutter="16">
+                <el-col :span="8"><el-form-item label="版本"><el-input v-model="docForm.current_version" /></el-form-item></el-col>
                 <el-col :span="8"><el-form-item label="状态">
                   <el-select v-model="docForm.status" style="width:100%">
-                    <el-option label="生效" value="生效" /><el-option label="废止" value="废止" /><el-option label="草稿" value="草稿" />
+                    <el-option label="现行有效" value="现行有效" /><el-option label="待评审" value="待评审" /><el-option label="已废止" value="已废止" />
                   </el-select>
                 </el-form-item></el-col>
-                <el-col :span="8"><el-form-item label="编制人"><el-input v-model="docForm.author" /></el-form-item></el-col>
-                <el-col :span="8"><el-form-item label="批准日期"><el-date-picker v-model="docForm.approve_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
               </el-row>
-              <el-form-item label="评审日期"><el-date-picker v-model="docForm.review_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item>
+              <el-form-item label="CNAS章节"><el-input v-model="docForm.cnas_chapter" /></el-form-item>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="生效日期"><el-date-picker v-model="docForm.effective_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="下次评审"><el-date-picker v-model="docForm.next_review_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="8"><el-form-item label="编制人"><el-input v-model="docForm.author" /></el-form-item></el-col>
+                <el-col :span="8"><el-form-item label="审核人"><el-input v-model="docForm.reviewer" /></el-form-item></el-col>
+                <el-col :span="8"><el-form-item label="批准人"><el-input v-model="docForm.approver" /></el-form-item></el-col>
+              </el-row>
               <el-form-item label="备注"><el-input v-model="docForm.remark" type="textarea" :rows="2" /></el-form-item>
             </el-form>
             <template #footer>
@@ -672,27 +689,20 @@
             </div>
             <el-table :data="ncrList" stripe v-loading="ncrLoading">
               <el-table-column prop="ncr_number" label="NCR编号" width="120" />
-              <el-table-column prop="source" label="来源" width="100" />
+              <el-table-column prop="source_type" label="来源" width="100" />
+              <el-table-column prop="discovery_date" label="发现日期" width="110" />
+              <el-table-column prop="responsible_dept" label="责任部门" width="110" />
+              <el-table-column prop="responsible_person" label="责任人" width="80" />
               <el-table-column prop="description" label="不符合描述" min-width="200" show-overflow-tooltip />
-              <el-table-column prop="severity" label="严重程度" width="90">
+              <el-table-column prop="plan_complete_date" label="整改截止" width="110" />
+              <el-table-column prop="closure_status" label="闭环状态" width="90">
                 <template #default="{row}">
-                  <el-tag :type="row.severity==='严重'?'danger':row.severity==='一般'?'warning':'info'" size="small">{{ row.severity }}</el-tag>
+                  <el-tag :type="ncrStatusType(row.closure_status)" size="small">{{ row.closure_status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="responsible" label="责任人" width="80" />
-              <el-table-column prop="status" label="状态" width="90">
-                <template #default="{row}">
-                  <el-tag :type="ncrStatusType(row.status)" size="small">{{ row.status }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="found_date" label="发现日期" width="110" />
-              <el-table-column prop="due_date" label="整改截止" width="110" />
               <el-table-column label="操作" width="200" fixed="right">
                 <template #default="{row}">
                   <el-button type="primary" link size="small" @click="openNcrDialog(row)">编辑</el-button>
-                  <el-button v-if="row.status==='待整改'" type="warning" link size="small" @click="ncrAction(row,'rectifying')">整改</el-button>
-                  <el-button v-if="row.status==='整改中'" type="success" link size="small" @click="ncrAction(row,'verifying')">验证</el-button>
-                  <el-button v-if="row.status==='待验证'" type="success" link size="small" @click="ncrAction(row,'close')">闭环</el-button>
                   <el-button type="danger" link size="small" @click="deleteNcr(row)">删除</el-button>
                 </template>
               </el-table-column>
@@ -702,25 +712,28 @@
             <el-form :model="ncrForm" label-width="90px">
               <el-row :gutter="16">
                 <el-col :span="12"><el-form-item label="NCR编号"><el-input v-model="ncrForm.ncr_number" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="来源">
-                  <el-select v-model="ncrForm.source" style="width:100%">
-                    <el-option label="内部审核" value="内部审核" /><el-option label="外部审核" value="外部审核" /><el-option label="客户投诉" value="客户投诉" /><el-option label="日常监督" value="日常监督" /><el-option label="质控活动" value="质控活动" /><el-option label="其他" value="其他" />
+                <el-col :span="12"><el-form-item label="来源类型">
+                  <el-select v-model="ncrForm.source_type" style="width:100%">
+                    <el-option label="内审" value="内审" /><el-option label="外审" value="外审" /><el-option label="客户投诉" value="客户投诉" /><el-option label="日常监督" value="日常监督" /><el-option label="质控活动" value="质控活动" /><el-option label="其他" value="其他" />
                   </el-select>
                 </el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="来源编号"><el-input v-model="ncrForm.source_ref" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="发现日期"><el-date-picker v-model="ncrForm.discovery_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
               </el-row>
               <el-form-item label="不符合描述"><el-input v-model="ncrForm.description" type="textarea" :rows="3" /></el-form-item>
               <el-row :gutter="16">
-                <el-col :span="8"><el-form-item label="严重程度">
-                  <el-select v-model="ncrForm.severity" style="width:100%">
-                    <el-option label="严重" value="严重" /><el-option label="一般" value="一般" /><el-option label="轻微" value="轻微" />
-                  </el-select>
-                </el-form-item></el-col>
-                <el-col :span="8"><el-form-item label="责任人"><el-input v-model="ncrForm.responsible" /></el-form-item></el-col>
-                <el-col :span="8"><el-form-item label="发现日期"><el-date-picker v-model="ncrForm.found_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="责任部门"><el-input v-model="ncrForm.responsible_dept" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="责任人"><el-input v-model="ncrForm.responsible_person" /></el-form-item></el-col>
               </el-row>
               <el-row :gutter="16">
-                <el-col :span="12"><el-form-item label="整改截止"><el-date-picker v-model="ncrForm.due_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="整改措施"><el-input v-model="ncrForm.rectification" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="整改截止"><el-date-picker v-model="ncrForm.plan_complete_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="闭环状态">
+                  <el-select v-model="ncrForm.closure_status" style="width:100%">
+                    <el-option label="实施中" value="实施中" /><el-option label="已关闭" value="已关闭" />
+                  </el-select>
+                </el-form-item></el-col>
               </el-row>
               <el-form-item label="备注"><el-input v-model="ncrForm.remark" type="textarea" :rows="2" /></el-form-item>
             </el-form>
@@ -846,8 +859,6 @@ const app = createApp({
     const loginFormRef = ref(null);
     const loginLoading = ref(false);
 
-    const alertTypeMap = { '校准到期': 'danger', '授权到期': 'warning', '文件评审': 'info', 'NCR整改': 'danger' };
-
     // Dashboard
     const dashStats = ref([]);
     const dashAlerts = ref([]);
@@ -864,7 +875,7 @@ const app = createApp({
     const personnelTotal = ref(0);
     const personnelDialogVisible = ref(false);
     const personnelSaving = ref(false);
-    const personnelForm = reactive({ id: null, name: '', employee_id: '', position: '', department: '', qualification: '', authorization_status: '未授权', entry_date: '', phone: '', remark: '' });
+    const personnelForm = reactive({ id: null, name: '', employee_id: '', position: '', department: '', hire_date: '', status: '在职', phone: '', email: '', education: '', specialty: '', remark: '' });
 
     // Equipment
     const equipList = ref([]);
@@ -873,28 +884,28 @@ const app = createApp({
     const equipTotal = ref(0);
     const equipDialogVisible = ref(false);
     const equipSaving = ref(false);
-    const equipForm = reactive({ id: null, name: '', asset_id: '', model: '', manufacturer: '', location: '', status: '正常', last_calibration_date: '', next_calibration_date: '', remark: '' });
+    const equipForm = reactive({ id: null, name: '', equipment_id: '', model: '', manufacturer: '', asset_tag: '', location: '', custodian: '', status: '在用', acceptance_date: '', commission_date: '', remark: '' });
 
     // Quality Control
     const qcList = ref([]);
     const qcLoading = ref(false);
     const qcDialogVisible = ref(false);
     const qcSaving = ref(false);
-    const qcForm = reactive({ item: '', method: '', frequency: '', result: '合格', executor: '', execute_date: '', remark: '' });
+    const qcForm = reactive({ qc_number: '', qc_type: '', test_items: '', plan_date: '', actual_date: '', status: '待执行', responsible_person: '', result_evaluation: '', ncr_id: '', related_qp: '', remark: '' });
 
     // Internal Audit
     const iaList = ref([]);
     const iaLoading = ref(false);
     const iaDialogVisible = ref(false);
     const iaSaving = ref(false);
-    const iaForm = reactive({ audit_year: '', audit_scope: '', lead_auditor: '', audit_date: '', status: '计划中', remark: '' });
+    const iaForm = reactive({ audit_number: '', audit_year: '', audit_round: '', plan_date: '', actual_date: '', lead_auditor: '', auditors: '', status: '计划中', audited_departments: '', ncr_count: 0, related_qp: '', remark: '' });
 
     // Management Review
     const mrList = ref([]);
     const mrLoading = ref(false);
     const mrDialogVisible = ref(false);
     const mrSaving = ref(false);
-    const mrForm = reactive({ review_year: '', review_topic: '', chairman: '', review_date: '', status: '计划中', conclusion: '', remark: '' });
+    const mrForm = reactive({ mr_number: '', review_year: '', plan_date: '', actual_date: '', host: '', participants: '', status: '计划中', remark: '' });
 
     // Detection Projects
     const dpList = ref([]);
@@ -903,7 +914,7 @@ const app = createApp({
     const dpTotal = ref(0);
     const dpDialogVisible = ref(false);
     const dpSaving = ref(false);
-    const dpForm = reactive({ project_name: '', standard: '', method: '', personnel_name: '', equipment_name: '', status: '未开始', start_date: '', end_date: '', remark: '' });
+    const dpForm = reactive({ project_number: '', project_name: '', customer_name: '', customer_contact: '', customer_phone: '', test_domain: '', application_date: '', plan_complete_date: '', actual_complete_date: '', status: '未开始', project_manager: '', testers: '', reviewers: '', remark: '' });
 
     // Documents
     const docList = ref([]);
@@ -912,14 +923,14 @@ const app = createApp({
     const docTotal = ref(0);
     const docDialogVisible = ref(false);
     const docSaving = ref(false);
-    const docForm = reactive({ doc_number: '', title: '', level: '三级', version: '1.0', category: '', status: '草稿', author: '', approve_date: '', review_date: '', remark: '' });
+    const docForm = reactive({ doc_number: '', doc_name: '', doc_level: '三级SOP', cnas_chapter: '', current_version: '1.0', effective_date: '', author: '', reviewer: '', approver: '', distribution: '', status: '现行有效', next_review_date: '', remark: '' });
 
     // NCRs
     const ncrList = ref([]);
     const ncrLoading = ref(false);
     const ncrDialogVisible = ref(false);
     const ncrSaving = ref(false);
-    const ncrForm = reactive({ id: null, ncr_number: '', source: '', description: '', severity: '一般', responsible: '', status: '待整改', found_date: '', due_date: '', rectification: '', remark: '' });
+    const ncrForm = reactive({ id: null, ncr_number: '', source_type: '', source_ref: '', discovery_date: '', responsible_dept: '', responsible_person: '', description: '', cause_analysis: '', corrective_action: '', action_owner: '', plan_complete_date: '', actual_complete_date: '', verifier: '', verify_date: '', verify_result: '', closure_status: '实施中', related_qp: '', remark: '' });
     const ncrActionDialogVisible = ref(false);
     const ncrActionTitle = ref('');
     const ncrActionType = ref('');
@@ -934,10 +945,9 @@ const app = createApp({
     const importUploadRef = ref(null);
 
     function ncrStatusType(s) {
-      if (s === '已闭环') return 'success';
-      if (s === '待整改') return 'danger';
-      if (s === '整改中') return 'warning';
-      if (s === '待验证') return 'primary';
+      if (s === '已关闭') return 'success';
+      if (s === '实施中') return 'warning';
+      if (s === '超期未关闭') return 'danger';
       return 'info';
     }
 
@@ -1007,26 +1017,31 @@ const app = createApp({
       try {
         const data = await api('GET', '/dashboard/stats');
         if (!data) return;
-        const s = data.stats || data;
+        const s = data.summary || {};
         dashStats.value = [
-          { label: '人员总数', value: s.personnel_count ?? 0, icon: '\uD83D\uDC64', color: '#1a237e' },
-          { label: '设备总数', value: s.equipment_count ?? 0, icon: '\uD83D\uDD27', color: '#0d47a1' },
-          { label: '已授权人员', value: s.authorized_count ?? 0, icon: '\u2705', color: '#2e7d32' },
-          { label: '待校准设备', value: s.calibration_due_count ?? 0, icon: '\u23F0', color: '#e65100' },
-          { label: '检测项目数', value: s.detection_count ?? 0, icon: '\uD83D\uDCCB', color: '#4a148c' },
-          { label: '受控文件数', value: s.document_count ?? 0, icon: '\uD83D\uDCC4', color: '#006064' },
-          { label: '未闭环NCR', value: s.open_ncr_count ?? 0, icon: '\u26A0\uFE0F', color: '#b71c1c' },
-          { label: '预警事项', value: (data.alerts || []).length, icon: '\uD83D\uDCE1', color: '#f57f17' }
+          { label: '在职人员', value: s.active_personnel ?? 0, icon: '\uD83D\uDC64', color: '#1a237e' },
+          { label: '在用设备', value: s.active_equipment ?? 0, icon: '\uD83D\uDD27', color: '#0d47a1' },
+          { label: '质控完成率', value: s.qc_rate ?? '0%', icon: '\u2705', color: '#2e7d32' },
+          { label: '闭环率', value: s.ncr_rate ?? '0%', icon: '\u23F0', color: '#e65100' },
+          { label: '进行中项目', value: s.project_in_progress ?? 0, icon: '\uD83D\uDCCB', color: '#4a148c' },
+          { label: '超期项目', value: s.project_overdue ?? 0, icon: '\uD83D\uDCC4', color: '#b71c1c' },
+          { label: '有效文件', value: s.docs_active ?? 0, icon: '\uD83D\uDCE1', color: '#006064' },
+          { label: '待评审文件', value: s.docs_review_needed ?? 0, icon: '\u26A0\uFE0F', color: '#f57f17' }
         ];
-        dashAlerts.value = data.alerts || [];
+        dashAlerts.value = data.warnings || [];
         await nextTick();
-        renderCharts(s);
+        renderCharts(data);
       } catch (e) {
         console.error('Dashboard load error:', e);
       }
     }
 
-    function renderCharts(s) {
+    function distToArr(obj) {
+      if (!obj) return [];
+      return Object.entries(obj).map(([name, value]) => ({ name, value }));
+    }
+
+    function renderCharts(data) {
       charts.forEach(c => c.dispose && c.dispose());
       charts = [];
       const eqEl = chartEquipStatus.value;
@@ -1037,8 +1052,8 @@ const app = createApp({
         const c = echarts.init(eqEl);
         c.setOption({
           tooltip: { trigger: 'item' },
-          color: ['#2e7d32', '#f57f17', '#c62828', '#9e9e9e'],
-          series: [{ type: 'pie', radius: ['40%', '70%'], label: { formatter: '{b}: {c}' }, data: s.equipment_status_distribution || [{ name: '正常', value: 0 }, { name: '维修中', value: 0 }, { name: '停用', value: 0 }, { name: '报废', value: 0 }] }]
+          color: ['#2e7d32', '#f57f17', '#c62828', '#9e9e9e', '#1a237e'],
+          series: [{ type: 'pie', radius: ['40%', '70%'], label: { formatter: '{b}: {c}' }, data: distToArr((data.equipment || {}).status_distribution) }]
         });
         charts.push(c);
       }
@@ -1047,19 +1062,19 @@ const app = createApp({
         c.setOption({
           tooltip: { trigger: 'item' },
           color: ['#2e7d32', '#f57f17', '#c62828'],
-          series: [{ type: 'pie', radius: ['40%', '70%'], label: { formatter: '{b}: {c}' }, data: s.authorization_status_distribution || [{ name: '已授权', value: 0 }, { name: '待授权', value: 0 }, { name: '未授权', value: 0 }] }]
+          series: [{ type: 'pie', radius: ['40%', '70%'], label: { formatter: '{b}: {c}' }, data: distToArr((data.personnel || {}).auth_status_distribution) }]
         });
         charts.push(c);
       }
       if (ncrEl) {
         const c = echarts.init(ncrEl);
-        const srcData = s.ncr_source_distribution || [];
+        const srcData = distToArr((data.quality || {}).ncr_source_distribution);
         c.setOption({
           tooltip: { trigger: 'axis' },
           color: ['#1a237e'],
-          xAxis: { type: 'category', data: srcData.map(d => d.name || d.source) },
+          xAxis: { type: 'category', data: srcData.map(d => d.name) },
           yAxis: { type: 'value' },
-          series: [{ type: 'bar', data: srcData.map(d => d.value || d.count), barWidth: 40, itemStyle: { borderRadius: [4, 4, 0, 0] } }]
+          series: [{ type: 'bar', data: srcData.map(d => d.value), barWidth: 40, itemStyle: { borderRadius: [4, 4, 0, 0] } }]
         });
         charts.push(c);
       }
@@ -1068,7 +1083,7 @@ const app = createApp({
         c.setOption({
           tooltip: { trigger: 'item' },
           color: ['#c62828', '#f57f17', '#2e7d32', '#1a237e'],
-          series: [{ type: 'pie', radius: ['40%', '70%'], label: { formatter: '{b}: {c}' }, data: s.document_level_distribution || [{ name: '一级', value: 0 }, { name: '二级', value: 0 }, { name: '三级', value: 0 }, { name: '四级', value: 0 }] }]
+          series: [{ type: 'pie', radius: ['40%', '70%'], label: { formatter: '{b}: {c}' }, data: distToArr((data.document || {}).level_distribution) }]
         });
         charts.push(c);
       }
@@ -1090,7 +1105,7 @@ const app = createApp({
         Object.keys(personnelForm).forEach(k => personnelForm[k] = row[k] ?? '');
         personnelForm.id = row.id;
       } else {
-        Object.keys(personnelForm).forEach(k => personnelForm[k] = k === 'authorization_status' ? '未授权' : '');
+        Object.keys(personnelForm).forEach(k => personnelForm[k] = k === 'status' ? '在职' : '');
         personnelForm.id = null;
       }
       personnelDialogVisible.value = true;
@@ -1136,7 +1151,7 @@ const app = createApp({
         Object.keys(equipForm).forEach(k => equipForm[k] = row[k] ?? '');
         equipForm.id = row.id;
       } else {
-        Object.keys(equipForm).forEach(k => equipForm[k] = k === 'status' ? '正常' : '');
+        Object.keys(equipForm).forEach(k => equipForm[k] = k === 'status' ? '在用' : '');
         equipForm.id = null;
       }
       equipDialogVisible.value = true;
@@ -1176,7 +1191,7 @@ const app = createApp({
       finally { qcLoading.value = false; }
     }
     function openQcDialog() {
-      Object.keys(qcForm).forEach(k => qcForm[k] = k === 'result' ? '合格' : '');
+      Object.keys(qcForm).forEach(k => qcForm[k] = k === 'status' ? '待执行' : '');
       qcDialogVisible.value = true;
     }
     async function saveQc() {
@@ -1274,8 +1289,7 @@ const app = createApp({
       finally { dpLoading.value = false; }
     }
     function openDpDialog() {
-      Object.keys(dpForm).forEach(k => dpForm[k] = k === 'status' ? '未开始' : '');
-      dpDialogVisible.value = true;
+      Object.keys(dpForm).forEach(k => dpForm[k] = k === 'status' ? '未开始' : '');      dpDialogVisible.value = true;
     }
     async function saveDp() {
       dpSaving.value = true;
@@ -1308,7 +1322,7 @@ const app = createApp({
       finally { docLoading.value = false; }
     }
     function openDocDialog() {
-      Object.keys(docForm).forEach(k => docForm[k] = k === 'level' ? '三级' : k === 'status' ? '草稿' : k === 'version' ? '1.0' : '');
+      Object.keys(docForm).forEach(k => docForm[k] = k === 'doc_level' ? '三级SOP' : k === 'status' ? '现行有效' : k === 'current_version' ? '1.0' : '');
       docDialogVisible.value = true;
     }
     async function saveDoc() {
@@ -1344,7 +1358,7 @@ const app = createApp({
         Object.keys(ncrForm).forEach(k => ncrForm[k] = row[k] ?? '');
         ncrForm.id = row.id;
       } else {
-        Object.keys(ncrForm).forEach(k => ncrForm[k] = k === 'severity' ? '一般' : k === 'status' ? '待整改' : '');
+        Object.keys(ncrForm).forEach(k => ncrForm[k] = k === 'closure_status' ? '实施中' : '');
         ncrForm.id = null;
       }
       ncrDialogVisible.value = true;
@@ -1464,7 +1478,7 @@ const app = createApp({
 
     return {
       currentRoute, currentUser, loginForm, loginRules, loginFormRef, loginLoading,
-      alertTypeMap, navigateTo, handleUserCommand, handleLogin,
+      navigateTo, handleUserCommand, handleLogin,
       dashStats, dashAlerts, chartEquipStatus, chartAuthStatus, chartNcrSource, chartDocLevel,
       personnelList, personnelLoading, personnelSearch, personnelTotal, personnelDialogVisible, personnelSaving, personnelForm,
       loadPersonnel, openPersonnelDialog, savePersonnel, deletePersonnel,
