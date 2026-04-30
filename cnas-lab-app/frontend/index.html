@@ -756,17 +756,13 @@
             <el-form label-width="100px">
               <el-form-item label="目标表">
                 <el-select v-model="importTable" placeholder="选择导入表" style="width:100%">
-                  <el-option label="人员表" value="personnel" />
-                  <el-option label="设备表" value="equipment" />
-                  <el-option label="授权表" value="authorizations" />
-                  <el-option label="校准表" value="calibrations" />
-                  <el-option label="核查表" value="checks" />
-                  <el-option label="质控表" value="quality_controls" />
-                  <el-option label="内审表" value="internal_audits" />
-                  <el-option label="管评表" value="management_reviews" />
-                  <el-option label="检测项目表" value="detection_projects" />
-                  <el-option label="文件表" value="documents" />
-                  <el-option label="不符合项表" value="ncrs" />
+                  <el-option label="人员管理" value="01_人员资质管理" />
+                  <el-option label="设备管理" value="02_设备生命周期管理" />
+                  <el-option label="质量控制" value="03_1_质量控制计划" />
+                  <el-option label="内部审核" value="03_2_内部审核" />
+                  <el-option label="管理评审" value="03_3_管理评审" />
+                  <el-option label="文件管理" value="05_文件控制管理" />
+                  <el-option label="不符合项" value="06_不符合纠正措施" />
                 </el-select>
               </el-form-item>
               <el-form-item label="CSV文件">
@@ -1427,7 +1423,7 @@ const app = createApp({
           throw new Error(err.detail || '导入失败');
         }
         const data = await res.json();
-        ElMessage.success('导入成功，共导入 ' + (data.imported_count || data.count || 0) + ' 条记录');
+        ElMessage.success('导入成功，共导入 ' + (data.imported || data.imported_count || data.count || 0) + ' 条记录');
         importFile.value = null;
         if (importUploadRef.value) importUploadRef.value.clearFiles();
       } catch (e) { ElMessage.error(e.message); }
