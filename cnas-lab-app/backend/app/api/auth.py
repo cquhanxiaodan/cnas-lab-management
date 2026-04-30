@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -7,11 +8,6 @@ from app.services.auth import get_current_user
 from app.models.models import User
 
 from pydantic import BaseModel
-
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
 
 
 class UserResponse(BaseModel):
@@ -29,12 +25,12 @@ router = APIRouter(prefix="/auth", tags=["认证"])
 
 
 @router.post("/login")
-def login(req: LoginRequest, db: Session = Depends(get_db)):
+def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     from app.services.auth import verify_password, create_access_token
     from app.models.models import User as UserModel
 
-    user = db.query(UserModel).filter(UserModel.username == req.username).first()
-    if not user or not verify_password(req.password, user.hashed_password):
+    user = db.query(UserModel).filter(UserModel.username == form.username).first()
+    if not user or not verify_password(form.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="用户名或密码错误")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="账号已被禁用")
