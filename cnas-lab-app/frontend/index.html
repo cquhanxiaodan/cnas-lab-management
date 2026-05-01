@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CNAS实验室文件管理系统 v1.2</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.css" />
+  <title>CNAS实验室文件管理系统 v1.3</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.css" onerror="this.href='https://unpkg.com/element-plus@2.9.1/dist/index.css'" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.css" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -811,12 +811,59 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
-<script>
-console.log('[CNAS] v1.2 loaded at', new Date().toISOString());
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js" onerror="handleCdnError('Vue')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.full.min.js" onerror="handleCdnError('Element Plus')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js" onerror="handleCdnError('Element Plus Icons')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js" onerror="handleCdnError('ECharts')"></script>
+  <script>
+console.log('[CNAS] v1.3 loaded at', new Date().toISOString());
+function handleCdnError(lib) {
+  console.error('[CNAS] CDN failed to load:', lib);
+  document.body.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;"><h2>资源加载失败</h2><p>无法加载 ' + lib + ' 库，请检查网络连接后刷新页面。</p><button onclick="location.reload()" style="padding:8px 24px;cursor:pointer;">刷新页面</button></div>';
+}
+// 检测关键库是否加载成功
+window.addEventListener('DOMContentLoaded', function() {
+  if (typeof Vue === 'undefined') {
+    var msg = '<div style="padding:40px;text-align:center;font-family:sans-serif;max-width:600px;margin:0 auto;">';
+    msg += '<h2>CNAS实验室文件管理系统</h2>';
+    msg += '<p style="color:#c62828;font-size:18px;">关键依赖加载失败</p>';
+    msg += '<div style="text-align:left;background:#f5f5f5;padding:20px;border-radius:8px;margin:20px 0;">';
+    msg += '<h3>可能的原因：</h3><ul>';
+    msg += '<li>网络环境无法访问 CDN 资源</li>';
+    msg += '<li>浏览器插件拦截了资源加载</li>';
+    msg += '<li>公司/学校网络限制了 CDN 访问</li>';
+    msg += '</ul><h3>解决方法：</h3><ol>';
+    msg += '<li>尝试切换网络（如使用手机热点）</li>';
+    msg += '<li>禁用广告拦截插件后刷新</li>';
+    msg += '<li>使用 Chrome/Edge 浏览器访问</li>';
+    msg += '</ol></div>';
+    msg += '<button onclick="location.reload()" style="padding:8px 24px;cursor:pointer;margin-right:12px;">刷新重试</button>';
+    msg += '<button onclick="showDiag()" style="padding:8px 24px;cursor:pointer;">网络诊断</button>';
+    msg += '<div id="diag" style="display:none;text-align:left;background:#fff;padding:20px;border-radius:8px;margin-top:16px;"></div>';
+    msg += '</div>';
+    document.body.innerHTML = msg;
+  }
+});
+function showDiag() {
+  var d = document.getElementById('diag');
+  d.style.display = 'block';
+  var urls = [
+    'https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js',
+    'https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.css',
+    'https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js'
+  ];
+  var html = '<h4>CDN 连通性检测：</h4><ul>';
+  urls.forEach(function(u) {
+    var s = document.createElement('script');
+    s.src = u;
+    s.onload = function() { html += '<li style="color:green;">[OK] ' + u + '</li>'; };
+    s.onerror = function() { html += '<li style="color:red;">[FAIL] ' + u + '</li>'; };
+    document.head.appendChild(s);
+    html += '<li>[检测中] ' + u + '</li>';
+  });
+  html += '</ul>';
+  d.innerHTML = html;
+}
 </script>
 <script>
 const { createApp, ref, reactive, computed, onMounted, watch, nextTick, onBeforeUnmount } = Vue;
