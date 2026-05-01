@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CNAS实验室文件管理系统 v1.1</title>
+  <title>CNAS实验室文件管理系统 v1.2</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.css" />
   <style>
@@ -119,8 +119,8 @@
     .crud-container { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
     .crud-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .crud-toolbar .left { display: flex; gap: 8px; }
-    .el-table { font-size: 13px; }
-    .el-table th { background: var(--primary-bg) !important; color: var(--primary) !important; font-weight: 600; }
+     .el-table { font-size: 13px; width: 100%; }
+     .el-table th { background: var(--primary-bg) !important; color: var(--primary) !important; font-weight: 600; white-space: nowrap; }
     .import-container { background: #fff; border-radius: 8px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); max-width: 700px; }
     .import-container h4 { margin-bottom: 16px; color: var(--primary); }
     .import-container .tips { margin-top: 16px; color: #666; font-size: 13px; line-height: 1.8; }
@@ -261,7 +261,7 @@
               </el-table-column>
               <el-table-column prop="phone" label="联系电话" width="130" />
               <el-table-column prop="email" label="邮箱" min-width="180" />
-              <el-table-column label="操作" width="150" fixed="right">
+              <el-table-column label="操作" width="150">
                 <template #default="{row}">
                   <el-button type="primary" link size="small" @click="openPersonnelDialog(row)">编辑</el-button>
                   <el-button type="danger" link size="small" @click="deletePersonnel(row)">删除</el-button>
@@ -329,7 +329,7 @@
                 </template>
               </el-table-column>
               <el-table-column prop="commission_date" label="启用日期" width="110" />
-              <el-table-column label="操作" width="150" fixed="right">
+              <el-table-column label="操作" width="150">
                 <template #default="{row}">
                   <el-button type="primary" link size="small" @click="openEquipDialog(row)">编辑</el-button>
                   <el-button type="danger" link size="small" @click="deleteEquipment(row)">删除</el-button>
@@ -395,7 +395,7 @@
               </el-table-column>
               <el-table-column prop="responsible_person" label="负责人" width="90" />
               <el-table-column prop="result_evaluation" label="结果评价" width="100" />
-              <el-table-column label="操作" width="100" fixed="right">
+              <el-table-column label="操作" width="100">
                 <template #default="{row}">
                   <el-button type="danger" link size="small" @click="deleteQc(row)">删除</el-button>
                 </template>
@@ -453,7 +453,7 @@
                 </template>
               </el-table-column>
               <el-table-column prop="ncr_count" label="NCR数量" width="90" />
-              <el-table-column label="操作" width="100" fixed="right">
+              <el-table-column label="操作" width="100">
                 <template #default="{row}">
                   <el-button type="danger" link size="small" @click="deleteIa(row)">删除</el-button>
                 </template>
@@ -508,7 +508,7 @@
                   <el-tag :type="row.status==='已完成'?'success':row.status==='进行中'?'warning':'info'" size="small">{{ row.status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="100" fixed="right">
+              <el-table-column label="操作" width="100">
                 <template #default="{row}">
                   <el-button type="danger" link size="small" @click="deleteMr(row)">删除</el-button>
                 </template>
@@ -566,7 +566,7 @@
                 </template>
               </el-table-column>
               <el-table-column prop="project_manager" label="项目负责人" width="100" />
-              <el-table-column label="操作" width="100" fixed="right">
+              <el-table-column label="操作" width="100">
                 <template #default="{row}">
                   <el-button type="danger" link size="small" @click="deleteDp(row)">删除</el-button>
                 </template>
@@ -632,7 +632,7 @@
                 </template>
               </el-table-column>
               <el-table-column prop="next_review_date" label="下次评审" width="110" />
-              <el-table-column label="操作" width="100" fixed="right">
+              <el-table-column label="操作" width="100">
                 <template #default="{row}">
                   <el-button type="danger" link size="small" @click="deleteDoc(row)">删除</el-button>
                 </template>
@@ -700,7 +700,7 @@
                   <el-tag :type="ncrStatusType(row.closure_status)" size="small">{{ row.closure_status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="200" fixed="right">
+              <el-table-column label="操作" width="200">
                 <template #default="{row}">
                   <el-button type="primary" link size="small" @click="openNcrDialog(row)">编辑</el-button>
                   <el-button type="danger" link size="small" @click="deleteNcr(row)">删除</el-button>
@@ -815,6 +815,9 @@
 <script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script>
+console.log('[CNAS] v1.2 loaded at', new Date().toISOString());
+</script>
 <script>
 const { createApp, ref, reactive, computed, onMounted, watch, nextTick, onBeforeUnmount } = Vue;
 const { ElMessage, ElMessageBox } = ElementPlus;
@@ -1095,6 +1098,7 @@ const app = createApp({
       try {
         const params = personnelSearch.value ? '?search=' + encodeURIComponent(personnelSearch.value) : '';
         const data = await api('GET', '/personnel' + params);
+        console.log('[CNAS] personnel data:', JSON.stringify(data));
         personnelList.value = Array.isArray(data) ? data : (data.items || []);
         personnelTotal.value = data.total || personnelList.value.length;
       } catch (e) { ElMessage.error(e.message); }
